@@ -1,0 +1,1 @@
+BookRecognitionString.d: ../BookRecognitionString.cpp

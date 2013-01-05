@@ -1,0 +1,5 @@
+com.mysql.jdbc.Driver
+jdbc:mysql://localhost/miragedb
+root
+Radzell1
+3302
