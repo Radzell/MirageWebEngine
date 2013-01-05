@@ -1,0 +1,1 @@
+RecognitionString.d: ../RecognitionString.cpp
