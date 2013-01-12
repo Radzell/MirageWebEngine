@@ -2,6 +2,7 @@ package com.client;
 
 import java.awt.image.BufferedImage;
 import java.io.BufferedWriter;
+import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -10,8 +11,10 @@ import java.io.OutputStreamWriter;
 import java.io.StringReader;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Scanner;
+import java.util.Vector;
 
 import javax.imageio.ImageIO;
 import javax.xml.parsers.DocumentBuilder;
@@ -28,6 +31,9 @@ import com.entity.KeyPoint;
 import com.entity.Mat;
 import com.entity.TargetImage;
 import com.utils.ConvertValue;
+import com.utils.Util;
+
+import flexjson.JSONDeserializer;
 
 public class Client {
 
@@ -125,6 +131,20 @@ public class Client {
 			while (input.hasNext()) {
 				response = input.nextLine();
 				System.out.println("Response " + response);
+				System.out.println("Response lenght" + response.length());
+				
+				/*ArrayList<Integer> tempo =((ArrayList<Integer>) new JSONDeserializer().deserialize(response)); 
+				ByteArrayOutputStream baos = new ByteArrayOutputStream();
+				DataOutputStream out = new DataOutputStream(baos);
+				for (Integer element : tempo) {
+				    out.write(element);
+				}
+				byte[] hero =  baos.toByteArray();
+				System.out.println("EN BYTES "+hero);
+				Vector<KeyPoint> kyp = (Vector<KeyPoint>)Util.objectFromByteArray(hero);
+				System.out.println("SIZE: "+kyp.get(0).size);
+				*/
+				//System.out.println("EN TEXTO "+new String(hero));
 				response = "<bb>" + response + "</bb>";
 			}
 			System.out.println("Response time: "

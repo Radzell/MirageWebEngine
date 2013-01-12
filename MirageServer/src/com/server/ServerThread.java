@@ -17,8 +17,11 @@ import java.util.Iterator;
 import java.util.Scanner;
 import java.util.Vector;
 
+import com.entity.KeyPoint;
+import com.entity.Mat;
 import com.entity.TargetImage;
 import com.utils.Config;
+import com.utils.Util;
 
 import flexjson.JSONSerializer;
 
@@ -227,8 +230,17 @@ public class ServerThread extends Thread {
 		String tit, au, in, ta, img;
 		float ra;
 
+		byte[] kypbt;
+		byte[] dessbt;
+		Vector<KeyPoint> kyp;
+
+		Mat dess;
+
+		String kypst;
+		String dessst;
+
 		// create a sql statement for selecting books with the listed ids
-		String sql = "select id, _name, _author, _description, _rating, _rateCount, _image from targetimage where id in (";
+		String sql = "select id, _name, _author, _description, _rating, _rateCount, _image,_keypoint,_descriptor from targetimage where id in (";
 		int idSize = ids.size();
 		Iterator<Integer> it = ids.iterator();
 		for (int i = 0; i < idSize; ++i) {
@@ -250,9 +262,16 @@ public class ServerThread extends Thread {
 			ra = rs.getFloat(5);
 			rc = rs.getInt(6);
 			img = rs.getString(7);
+			kypbt = (byte[]) rs.getObject(8);
+			kyp = (Vector<KeyPoint>) Util.objectFromByteArray(kypbt);
+			dessbt = (byte[]) rs.getObject(9);
+			dess = (Mat) Util.objectFromByteArray(dessbt);
+
 			int idx = ids.indexOf(id);
 			System.out.println("Idx " + idx);
-			result.set(idx, new TargetImage(id, tit, au, in, ra, rc, img));
+
+			result.set(idx, new TargetImage(id, tit, au, in, ra, rc, img,
+					kypbt, dessbt));
 		}
 
 		return result;
@@ -325,20 +344,13 @@ public class ServerThread extends Thread {
 			responseError("Cannot find book");
 			return;
 		}
-
-		int size = b.size();
-		Iterator<TargetImage> it = b.iterator();
-		String s = XmlTag.targetimageNo_Start + size + XmlTag.targetimageNo_End;
-		for (int i = 0; i < size; ++i) {
-			// s += formatTargetImage(it.next());
-		}
-		System.out.println(s);
-
-		JSONSerializer serializer = new JSONSerializer();
+		JSONSerializer serializer = new JSONSerializer().include("keysbt",
+				"dessbt");
 
 		BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(
 				outToClient));
 		try {
+
 			bw.write(serializer.serialize(b));
 
 			bw.close();

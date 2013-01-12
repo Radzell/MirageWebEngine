@@ -22,7 +22,11 @@ public class TargetImage implements Comparable<TargetImage> {
 	int matchKeys;
 	public int width;
 	public int height;
-	String testJSON;
+	
+	public byte[] keysbt;
+	public byte[] dessbt;
+	
+	public String test;
 
 	/**
 	 * Create a empty book
@@ -100,8 +104,28 @@ public class TargetImage implements Comparable<TargetImage> {
 		matchKeys = 0;
 		this.keys = keys;
 		this.dess = dess;
+	}
+	
+	
+	
+	
+	
+	public TargetImage(int id, String tit, String au, String de, float ra,
+			int rc, String img, byte[] keys, byte[] dess) {
+		ID = id;
+		name = tit;
+		author = au;
+		description = de;
+		rating = ra;
+		rateCount = rc;
+		image = img;
+		matchKeys = 0;
+		this.keysbt = keys;
+		this.dessbt = dess;
 
 	}
+	
+	
 
 	public TargetImage(int id, String tit, String au, String de, float ra,
 			int rc, String img, Vector<KeyPoint> keys, Mat dess, int width,
