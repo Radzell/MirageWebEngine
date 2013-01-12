@@ -22,6 +22,7 @@ public class TargetImage implements Comparable<TargetImage> {
 	int matchKeys;
 	public int width;
 	public int height;
+	String testJSON;
 
 	/**
 	 * Create a empty book

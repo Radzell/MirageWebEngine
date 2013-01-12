@@ -6,5 +6,6 @@
 	<classpathentry kind="lib" path="libs/activejdbc-1.4.7-20121226.235300-1-javadoc.jar"/>
 	<classpathentry kind="lib" path="libs/activejdbc-1.4.7-20121226.235300-1.jar"/>
 	<classpathentry kind="lib" path="/usr/share/java/mysql-connector-java.jar"/>
+	<classpathentry kind="lib" path="libs/flexjson-2.1.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

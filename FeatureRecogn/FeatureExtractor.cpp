@@ -86,7 +86,7 @@ inline void readKeyAndDesc(ifstream& fin,Mat& trainDes) {
 		//cout<<"KeyNum "<<keyNum<<x<< y<< size<< angle<< response<< octave<< classId<<endl;
 	}
 
-	int rows, cols, type;
+	int rows, cols;
 	uchar *data;
 
 	getline(fin,line);

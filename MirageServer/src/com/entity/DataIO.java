@@ -257,8 +257,9 @@ public class DataIO {
 	}
 
 	public static void main(String args[]) {
-		System.out.println("Path: " + args[0]);
-		File folder = new File(args[0]);
+		String pathTemp = "posters";
+		System.out.println("Path: " + pathTemp);
+		File folder = new File(pathTemp);
 		File[] listOfFiles = folder.listFiles();
 		for (int i = 0; i < listOfFiles.length; i++) {
 			File file = listOfFiles[i];

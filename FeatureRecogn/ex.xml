@@ -2,8 +2,8 @@
 <cdtprojectproperties>
 <section name="org.eclipse.cdt.internal.ui.wizards.settingswizards.IncludePaths">
 <language name="C++ Source File">
-<includepath>/usr/local/include/opencv</includepath>
-<includepath>/usr/local/include/opencv2</includepath>
+<includepath>/usr/include/include/opencv</includepath>
+<includepath>/usr/include/include/opencv2</includepath>
 
 </language>
 <language name="C Source File">

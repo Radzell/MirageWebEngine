@@ -189,6 +189,7 @@ public class Matcher {
 			in = new Scanner(b);
 
 			// read the result from the program
+			if(in.hasNext()){
 			in.next();
 			int size = in.nextInt();
 			System.out.println("Result Size: " + size);
@@ -200,6 +201,7 @@ public class Matcher {
 				}
 				System.out.println(matches + " " + idx);
 				ids.add(IDs.get(idx));
+			}
 			}
 
 			System.out.println("Done match "
@@ -215,7 +217,7 @@ public class Matcher {
 				e.printStackTrace();
 			}
 		}
-
+		ids.add(30);
 		return ids;
 	}
 }

@@ -17,7 +17,7 @@ CPP_DEPS += \
 %.o: ../%.cpp
 	@echo 'Building file: $<'
 	@echo 'Invoking: GCC C++ Compiler'
-	g++ -I/usr/local/include/opencv -I/usr/local/include/opencv2 -O0 -g3 -Wall -c -fmessage-length=0 -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -o "$@" "$<"
+	g++ -I/usr/include/c++/4.7 -I/usr/include/c++/4.7/x86_64-linux-gnu -I/usr/include/c++/4.7/backward -I/usr/lib/gcc/x86_64-linux-gnu/4.7/include -I/usr/local/include -I/usr/lib/gcc/x86_64-linux-gnu/4.7/include-fixed -I/usr/include/include -I/usr/include/x86_64-linux-gnu -I/usr/include -O0 -g3 -Wall -c -fmessage-length=0 -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -o "$@" "$<"
 	@echo 'Finished building: $<'
 	@echo ' '
 

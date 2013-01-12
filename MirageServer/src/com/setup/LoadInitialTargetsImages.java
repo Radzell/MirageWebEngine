@@ -21,21 +21,24 @@ public class LoadInitialTargetsImages {
 			System.out.println("Not Enough Args");
 			return;
 		}
-		System.out.println("Path: " + args[0]);
-		File folder = new File(args[0]);
+		String pathTemp = "posters/JPEG";
+		System.out.println("Path: " + pathTemp);
+		File folder = new File(pathTemp);
 		File[] listOfFiles = folder.listFiles();
 		Process p = null;
 		ProcessBuilder pb = new ProcessBuilder("./FeatureRecogn");
+		pb.redirectErrorStream(true);
 
 		try {
 			System.out.println("Start");
 
-			p = pb.start();
+			//p = pb.start();
 			// p.waitFor();
 
 			for (int i = 0; i < listOfFiles.length; i++) {
 				if (listOfFiles[i].isFile()
 						&& listOfFiles[i].getName().contains(".jpg")) {
+					System.out.println("ANALYZE " + listOfFiles[i]);
 					p = pb.start();
 					OutputStream stdin = p.getOutputStream();
 
@@ -43,7 +46,6 @@ public class LoadInitialTargetsImages {
 							new OutputStreamWriter(stdin));
 					// content is the string that I want to write to the
 					// process.
-
 					writer.write(listOfFiles[i].getPath());
 					writer.flush();
 					writer.close();
@@ -65,8 +67,5 @@ public class LoadInitialTargetsImages {
 			e.printStackTrace();
 		}
 
-		for (int i = 0; i < listOfFiles.length; i++) {
-
-		}
 	}
 }

@@ -2,7 +2,7 @@
 <?fileVersion 4.0.0?><cproject storage_type_id="org.eclipse.cdt.core.XmlProjectDescriptionStorage">
 	<storageModule moduleId="org.eclipse.cdt.core.settings">
 		<cconfiguration id="cdt.managedbuild.config.gnu.exe.debug.80225590">
-			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="cdt.managedbuild.config.gnu.exe.debug.80225590" moduleId="org.eclipse.cdt.core.settings" name="Debug">
+			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="cdt.managedbuild.config.gnu.exe.debug.80225590" moduleId="org.eclipse.cdt.core.settings" name="Release">
 				<externalSettings/>
 				<extensions>
 					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
@@ -14,7 +14,7 @@
 				</extensions>
 			</storageModule>
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
-				<configuration artifactName="${ProjName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug,org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe" cleanCommand="rm -rf" description="" id="cdt.managedbuild.config.gnu.exe.debug.80225590" name="Debug" parent="cdt.managedbuild.config.gnu.exe.debug">
+				<configuration artifactName="${ProjName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.debug,org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe" cleanCommand="rm -rf" description="" id="cdt.managedbuild.config.gnu.exe.debug.80225590" name="Release" parent="cdt.managedbuild.config.gnu.exe.debug">
 					<folderInfo id="cdt.managedbuild.config.gnu.exe.debug.80225590." name="/" resourcePath="">
 						<toolChain id="cdt.managedbuild.toolchain.gnu.exe.debug.371365866" name="Linux GCC" superClass="cdt.managedbuild.toolchain.gnu.exe.debug">
 							<targetPlatform id="cdt.managedbuild.target.gnu.platform.exe.debug.1103023018" name="Debug Platform" superClass="cdt.managedbuild.target.gnu.platform.exe.debug"/>
@@ -24,20 +24,34 @@
 								<option id="gnu.cpp.compiler.exe.debug.option.optimization.level.55379000" name="Optimization Level" superClass="gnu.cpp.compiler.exe.debug.option.optimization.level" value="gnu.cpp.compiler.optimization.level.none" valueType="enumerated"/>
 								<option id="gnu.cpp.compiler.exe.debug.option.debugging.level.2005427304" name="Debug Level" superClass="gnu.cpp.compiler.exe.debug.option.debugging.level" value="gnu.cpp.compiler.debugging.level.max" valueType="enumerated"/>
 								<option id="gnu.cpp.compiler.option.include.paths.1832352259" name="Include paths (-I)" superClass="gnu.cpp.compiler.option.include.paths" valueType="includePath">
-									<listOptionValue builtIn="false" value="/usr/local/include/opencv"/>
-									<listOptionValue builtIn="false" value="/usr/local/include/opencv2"/>
+									<listOptionValue builtIn="false" value="/usr/include/c++/4.7"/>
+									<listOptionValue builtIn="false" value="/usr/include/c++/4.7/x86_64-linux-gnu"/>
+									<listOptionValue builtIn="false" value="/usr/include/c++/4.7/backward"/>
+									<listOptionValue builtIn="false" value="/usr/lib/gcc/x86_64-linux-gnu/4.7/include"/>
+									<listOptionValue builtIn="false" value="/usr/local/include"/>
+									<listOptionValue builtIn="false" value="/usr/lib/gcc/x86_64-linux-gnu/4.7/include-fixed"/>
+									<listOptionValue builtIn="false" value="/usr/include/include"/>
+									<listOptionValue builtIn="false" value="/usr/include/x86_64-linux-gnu"/>
+									<listOptionValue builtIn="false" value="/usr/include"/>
 								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.cpp.compiler.input.871902679" superClass="cdt.managedbuild.tool.gnu.cpp.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.compiler.exe.debug.1023066372" name="GCC C Compiler" superClass="cdt.managedbuild.tool.gnu.c.compiler.exe.debug">
 								<option defaultValue="gnu.c.optimization.level.none" id="gnu.c.compiler.exe.debug.option.optimization.level.1324809676" name="Optimization Level" superClass="gnu.c.compiler.exe.debug.option.optimization.level" valueType="enumerated"/>
 								<option id="gnu.c.compiler.exe.debug.option.debugging.level.61925586" name="Debug Level" superClass="gnu.c.compiler.exe.debug.option.debugging.level" value="gnu.c.debugging.level.max" valueType="enumerated"/>
+								<option id="gnu.c.compiler.option.include.paths.363252733" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" valueType="includePath">
+									<listOptionValue builtIn="false" value="/usr/lib/x86_64-linx-gnu/4.7/include"/>
+									<listOptionValue builtIn="false" value="/usr/local/include"/>
+									<listOptionValue builtIn="false" value="/usr/include/x86_64-linx-gnu"/>
+									<listOptionValue builtIn="false" value="/usr/lib/gcc/x86_64-linux-gnu/4.7/include-fixed"/>
+									<listOptionValue builtIn="false" value="/usr/include"/>
+								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.2132917438" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.linker.exe.debug.1121571788" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.exe.debug"/>
 							<tool id="cdt.managedbuild.tool.gnu.cpp.linker.exe.debug.377641396" name="GCC C++ Linker" superClass="cdt.managedbuild.tool.gnu.cpp.linker.exe.debug">
 								<option id="gnu.cpp.link.option.paths.935360824" name="Library search path (-L)" superClass="gnu.cpp.link.option.paths" valueType="libPaths">
-									<listOptionValue builtIn="false" value="/usr/local/lib"/>
+									<listOptionValue builtIn="false" value="/usr/include/lib"/>
 								</option>
 								<option id="gnu.cpp.link.option.libs.2092983752" name="Libraries (-l)" superClass="gnu.cpp.link.option.libs" valueType="libs">
 									<listOptionValue builtIn="false" value="opencv_core"/>
@@ -61,7 +75,7 @@
 			<storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
 		</cconfiguration>
 		<cconfiguration id="cdt.managedbuild.config.gnu.exe.release.908616723">
-			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="cdt.managedbuild.config.gnu.exe.release.908616723" moduleId="org.eclipse.cdt.core.settings" name="Release">
+			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="cdt.managedbuild.config.gnu.exe.release.908616723" moduleId="org.eclipse.cdt.core.settings" name="Debug">
 				<externalSettings/>
 				<extensions>
 					<extension id="org.eclipse.cdt.core.ELF" point="org.eclipse.cdt.core.BinaryParser"/>
@@ -73,7 +87,7 @@
 				</extensions>
 			</storageModule>
 			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
-				<configuration artifactName="${ProjName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.release,org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe" cleanCommand="rm -rf" description="" id="cdt.managedbuild.config.gnu.exe.release.908616723" name="Release" parent="cdt.managedbuild.config.gnu.exe.release">
+				<configuration artifactName="${ProjName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.release,org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe" cleanCommand="rm -rf" description="" id="cdt.managedbuild.config.gnu.exe.release.908616723" name="Debug" parent="cdt.managedbuild.config.gnu.exe.release">
 					<folderInfo id="cdt.managedbuild.config.gnu.exe.release.908616723." name="/" resourcePath="">
 						<toolChain id="cdt.managedbuild.toolchain.gnu.exe.release.749149337" name="Linux GCC" superClass="cdt.managedbuild.toolchain.gnu.exe.release">
 							<targetPlatform id="cdt.managedbuild.target.gnu.platform.exe.release.6038118" name="Debug Platform" superClass="cdt.managedbuild.target.gnu.platform.exe.release"/>
@@ -125,5 +139,7 @@
 		</scannerConfigBuildInfo>
 	</storageModule>
 	<storageModule moduleId="org.eclipse.cdt.core.LanguageSettingsProviders"/>
-	<storageModule moduleId="refreshScope"/>
+	<storageModule moduleId="refreshScope" versionNumber="1">
+		<resource resourceType="PROJECT" workspacePath="/FeatureRecogn"/>
+	</storageModule>
 </cproject>

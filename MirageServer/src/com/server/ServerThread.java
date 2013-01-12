@@ -20,6 +20,8 @@ import java.util.Vector;
 import com.entity.TargetImage;
 import com.utils.Config;
 
+import flexjson.JSONSerializer;
+
 /**
  * ServerThread is responsible for serving user's request.
  * 
@@ -328,15 +330,19 @@ public class ServerThread extends Thread {
 		Iterator<TargetImage> it = b.iterator();
 		String s = XmlTag.targetimageNo_Start + size + XmlTag.targetimageNo_End;
 		for (int i = 0; i < size; ++i) {
-			s += formatTargetImage(it.next());
+			// s += formatTargetImage(it.next());
 		}
-		// System.out.println(s);
+		System.out.println(s);
+
+		JSONSerializer serializer = new JSONSerializer();
 
 		BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(
 				outToClient));
 		try {
-			bw.write(s);
+			bw.write(serializer.serialize(b));
+
 			bw.close();
+			System.out.println("ENVIADO");
 		} catch (Exception exc) {
 			exc.printStackTrace();
 		}
