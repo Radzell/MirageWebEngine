@@ -10,6 +10,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Scanner;
 import java.util.Vector;
@@ -88,7 +89,7 @@ public class Matcher {
 			int size = b.size();
 			for (int i = 0; i < size; ++i) {
 				TargetImage temp = it.next();
-				System.out.println("Size:" + temp.dess);
+				// System.out.println("Size:" + temp.dess);
 				dataSize += temp.dess.rows * temp.dess.cols + 3
 						+ temp.keys.size() * 7 + 1;
 			}
@@ -139,7 +140,7 @@ public class Matcher {
 	 */
 	private synchronized static void writeDes(BufferedWriter bw, Mat k)
 			throws IOException {
-		System.out.println("R: " + k.cols + " : " + k.rows);
+		// System.out.println("R: " + k.cols + " : " + k.rows);
 		bw.write(k.rows + " ");
 		bw.write(k.cols + " ");
 		bw.write(k.type + " ");
@@ -158,6 +159,8 @@ public class Matcher {
 		return p;
 	}
 
+	public native static int[] recognition(String path);
+
 	/**
 	 * Compare an image to database images to find out the most similar ones.
 	 * 
@@ -169,56 +172,36 @@ public class Matcher {
 		Vector<Integer> ids = new Vector<Integer>();
 		String filename = System.currentTimeMillis() + ".jpg";
 
-		try {
-			// write the image to a file which will be the input for the
-			// matching engine
+		try { // write the image to a file which will be the input for the
+				// matching engine
 			ImageIO.write(img, "JPG", new File(filename));
 			System.out.println("Done write");
 			long start = System.currentTimeMillis();
-
-			// start the matching program
-			p = null;
-			try {
-				Runtime.getRuntime().addShutdownHook(new MyShutdownHook());
-				p = Runtime.getRuntime().exec("./Recognition " + filename);
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-
-			BufferedInputStream b = new BufferedInputStream(p.getInputStream());
-			in = new Scanner(b);
-
-			// read the result from the program
-			if(in.hasNext()){
-			in.next();
-			int size = in.nextInt();
-			System.out.println("Result Size: " + size);
-			for (int i = 0; i < size; ++i) {
-				float matches = in.nextFloat();
-				int idx = in.nextInt();
-				if (matches > WRONG_THRESHOLD) {
-					// break;
-				}
-				System.out.println(matches + " " + idx);
-				ids.add(IDs.get(idx));
-			}
+			System.out.println(filename);
+			int[] test = recognition(filename);
+			for (int i = 0; i < test.length; i++) {
+				ids.add(test[i]);
 			}
 
 			System.out.println("Done match "
 					+ (System.currentTimeMillis() - start) + "ms");
 		} catch (Exception exc) {
 			exc.printStackTrace();
-		} finally {
-			try {
-				if (p != null)
-					p.destroy();
-				Runtime.getRuntime().exec("rm " + filename);
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
 		}
-		ids.add(30);
 		return ids;
+	}
+
+	static {
+		//System.loadLibrary("libopencv_core.so.2.4");
+		System.load("/usr/include/lib/libopencv_core.so.2.4");
+		System.load("/usr/include/lib/libopencv_highgui.so.2.4");
+		System.load("/usr/include/lib/libopencv_imgproc.so.2.4");
+		System.load("/usr/include/lib/libopencv_nonfree.so.2.4");
+		System.load("/usr/include/lib/libopencv_features2d.so.2.4");
+		System.load("/usr/include/lib/libopencv_legacy.so.2.4");
+		System.load("/usr/include/lib/libopencv_nonfree.so.2.4");
+		System.load("/usr/include/lib/libopencv_calib3d.so.2.4");
+		System.load("/home/diego/workspaceNEW/MirageServerLib/Release/libMirageServerLib.so");
 	}
 }
 

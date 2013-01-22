@@ -1,12 +1,6 @@
 package com.setup;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 
 /**
  * Takes all the images in a folder and takes their descriptor and add it to the
@@ -16,7 +10,28 @@ import java.io.OutputStreamWriter;
  * 
  */
 public class LoadInitialTargetsImages {
+
+
+	public native void callFeatureRecogn();
+
+	public native void analyzeFeatureRecogn(String path);
+
+	static {
+		System.load("/usr/include/lib/libopencv_core.so.2.4");
+		System.load("/usr/include/lib/libopencv_highgui.so.2.4");
+		System.load("/usr/include/lib/libopencv_imgproc.so.2.4");
+		System.load("/usr/include/lib/libopencv_nonfree.so.2.4");
+		System.load("/usr/include/lib/libopencv_features2d.so.2.4");
+		System.load("/usr/include/lib/libopencv_legacy.so.2.4");
+		System.load("/usr/include/lib/libopencv_nonfree.so.2.4");
+		System.load("/usr/include/lib/libopencv_calib3d.so.2.4");
+		System.load("/home/diego/workspaceNEW/MirageServerLib/Release/libMirageServerLib.so");
+	}
+
 	public static void main(String args[]) {
+
+		LoadInitialTargetsImages loadInit = new LoadInitialTargetsImages();
+
 		if (args.length < 0) {
 			System.out.println("Not Enough Args");
 			return;
@@ -25,46 +40,18 @@ public class LoadInitialTargetsImages {
 		System.out.println("Path: " + pathTemp);
 		File folder = new File(pathTemp);
 		File[] listOfFiles = folder.listFiles();
-		Process p = null;
-		ProcessBuilder pb = new ProcessBuilder("./FeatureRecogn");
-		pb.redirectErrorStream(true);
 
-		try {
-			System.out.println("Start");
+		System.out.println("Start");
 
-			//p = pb.start();
-			// p.waitFor();
+		// p = pb.start(); // p.waitFor();
 
-			for (int i = 0; i < listOfFiles.length; i++) {
-				if (listOfFiles[i].isFile()
-						&& listOfFiles[i].getName().contains(".jpg")) {
-					System.out.println("ANALYZE " + listOfFiles[i]);
-					p = pb.start();
-					OutputStream stdin = p.getOutputStream();
-
-					BufferedWriter writer = new BufferedWriter(
-							new OutputStreamWriter(stdin));
-					// content is the string that I want to write to the
-					// process.
-					writer.write(listOfFiles[i].getPath());
-					writer.flush();
-					writer.close();
-
-					BufferedReader br = new BufferedReader(
-							new InputStreamReader(p.getInputStream()));
-
-					String currLine = null;
-					while ((currLine = br.readLine()) != null) {
-						System.out.println(currLine);
-					}
-					p.destroy();
-				}
+		for (int i = 0; i < listOfFiles.length; i++) {
+			if (listOfFiles[i].isFile()
+					&& listOfFiles[i].getName().contains(".jpg")) {
+				System.out.println("ANALYZE " + listOfFiles[i].getAbsolutePath());
+				loadInit.analyzeFeatureRecogn(listOfFiles[i].getAbsolutePath());
+				System.out.println("End");
 			}
-			System.out.println("End");
-
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		}
 
 	}

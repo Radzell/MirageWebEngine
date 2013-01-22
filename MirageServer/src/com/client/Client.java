@@ -118,9 +118,9 @@ public class Client {
 		DataOutputStream dos;
 		// for(int i = 0; i < 100; ++i)
 		try {
-			// skt = new Socket("119.15.161.26", 8080);
+			 skt = new Socket("localhost", 3302);
 			long start = System.currentTimeMillis();
-			skt = new Socket("localhost", 3302);
+			//skt = new Socket("184.106.134.110", 3302);
 			dos = new DataOutputStream(skt.getOutputStream());
 			Scanner input = new Scanner(skt.getInputStream());
 			// dos.writeBytes("SIMILAR 156 \n");
