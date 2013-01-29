@@ -4,13 +4,16 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 CPP_SRCS += \
-../LoadInitialTargetsImages.cpp 
+../LoadInitialTargetsImages.cpp \
+../Matcher.cpp 
 
 OBJS += \
-./LoadInitialTargetsImages.o 
+./LoadInitialTargetsImages.o \
+./Matcher.o 
 
 CPP_DEPS += \
-./LoadInitialTargetsImages.d 
+./LoadInitialTargetsImages.d \
+./Matcher.d 
 
 
 # Each subdirectory must supply rules for building sources it contributes

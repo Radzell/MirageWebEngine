@@ -22,11 +22,9 @@ public class TargetImage implements Comparable<TargetImage> {
 	int matchKeys;
 	public int width;
 	public int height;
-	
+
 	public byte[] keysbt;
 	public byte[] dessbt;
-	
-	public String test;
 
 	/**
 	 * Create a empty book
@@ -105,11 +103,7 @@ public class TargetImage implements Comparable<TargetImage> {
 		this.keys = keys;
 		this.dess = dess;
 	}
-	
-	
-	
-	
-	
+
 	public TargetImage(int id, String tit, String au, String de, float ra,
 			int rc, String img, byte[] keys, byte[] dess) {
 		ID = id;
@@ -124,8 +118,6 @@ public class TargetImage implements Comparable<TargetImage> {
 		this.dessbt = dess;
 
 	}
-	
-	
 
 	public TargetImage(int id, String tit, String au, String de, float ra,
 			int rc, String img, Vector<KeyPoint> keys, Mat dess, int width,

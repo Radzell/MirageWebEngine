@@ -4,13 +4,16 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 CPP_SRCS += \
-../RecognitionString.cpp 
+../RecognitionString.cpp \
+../TargetImage.cpp 
 
 OBJS += \
-./RecognitionString.o 
+./RecognitionString.o \
+./TargetImage.o 
 
 CPP_DEPS += \
-./RecognitionString.d 
+./RecognitionString.d \
+./TargetImage.d 
 
 
 # Each subdirectory must supply rules for building sources it contributes

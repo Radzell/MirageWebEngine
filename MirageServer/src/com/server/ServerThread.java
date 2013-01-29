@@ -354,7 +354,6 @@ public class ServerThread extends Thread {
 			bw.write(serializer.serialize(b));
 
 			bw.close();
-			System.out.println("ENVIADO");
 		} catch (Exception exc) {
 			exc.printStackTrace();
 		}
@@ -373,67 +372,6 @@ public class ServerThread extends Thread {
 			bw.close();
 		} catch (Exception exc) {
 			exc.printStackTrace();
-		}
-	}
-
-	/**
-	 * Handle rating task. This function allows user to rate a specific book
-	 */
-	private void doRate() {
-		Scanner input = new Scanner(inFromClient);
-		// get user's data
-		Float score = input.nextFloat(), temp = 0.0f;
-		Integer bookID = input.nextInt(), count = 0;
-
-		try {
-			PreparedStatement ps;
-			// find the book which user want to rate
-			ps = con.prepareStatement("select rating, rateCount from targetimage where id="
-					+ bookID);
-			ResultSet rs = ps.executeQuery();
-			boolean hasRows = false;
-			// get the rating and ratecount
-			while (rs.next()) {
-				temp = rs.getFloat(1);
-				count = rs.getInt(2);
-				score = (temp * count + score) / (count + 1);
-				count++;
-				hasRows = true;
-			}
-			if (!hasRows) {
-				throw new SQLException();
-			}
-
-			// update rating and rateCount value for this book
-			ps = con.prepareStatement("update book set rating=?, rateCount=? where bookid=?");
-			ps.setString(1, score.toString());
-			ps.setString(2, count.toString());
-			ps.setString(3, bookID.toString());
-			ps.executeUpdate();
-
-			// reponse to user
-			responseRate(bookID);
-		} catch (SQLException e) { // if any error occurs, return an error
-									// message
-			responseError("Cannot rate book " + bookID);
-			e.printStackTrace();
-			reconnect();
-		}
-	}
-
-	/**
-	 * Return a rating message to user
-	 * 
-	 * @param id
-	 */
-	private void responseRate(int id) {
-		BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(
-				outToClient));
-		try {
-			bw.write("OK");
-			bw.close();
-		} catch (IOException e) {
-			e.printStackTrace();
 		}
 	}
 }

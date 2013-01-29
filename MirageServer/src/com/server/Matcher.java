@@ -69,8 +69,8 @@ public class Matcher {
 
 				IDs.add(rs.getInt(1));
 			}
-			// System.out.println("Size: " + bs.size());
 			writeData(bs);
+			load();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -93,11 +93,13 @@ public class Matcher {
 				dataSize += temp.dess.rows * temp.dess.cols + 3
 						+ temp.keys.size() * 7 + 1;
 			}
+
 			bw.write(dataSize + " ");
 			bw.write(size + " ");
 			it = b.iterator();
 			for (int i = 0; i < size; ++i) {
 				TargetImage temp = it.next();
+				bw.write(temp.ID + " ");
 				bw.write(temp.width + " ");
 				bw.write(temp.height + " ");
 				int kSize = temp.keys.size();
@@ -161,6 +163,10 @@ public class Matcher {
 
 	public native static int[] recognition(String path);
 
+	public native static void load();
+
+	public native static void print();
+
 	/**
 	 * Compare an image to database images to find out the most similar ones.
 	 * 
@@ -168,19 +174,21 @@ public class Matcher {
 	 * @return ids of the most similar images
 	 */
 	public synchronized static Vector<Integer> match(String image) {
+
 		BufferedImage img = ConvertValue.base64StringToBitmap(image);
 		Vector<Integer> ids = new Vector<Integer>();
 		String filename = System.currentTimeMillis() + ".jpg";
 
-		try { // write the image to a file which will be the input for the
-				// matching engine
+		try {
 			ImageIO.write(img, "JPG", new File(filename));
 			System.out.println("Done write");
 			long start = System.currentTimeMillis();
 			System.out.println(filename);
-			int[] test = recognition(filename);
-			for (int i = 0; i < test.length; i++) {
-				ids.add(test[i]);
+
+			// Calls jni method to get matches
+			int[] response = recognition(filename);
+			for (int i = 0; i < response.length; i++) {
+				ids.add(response[i]);
 			}
 
 			System.out.println("Done match "
@@ -192,16 +200,12 @@ public class Matcher {
 	}
 
 	static {
-		//System.loadLibrary("libopencv_core.so.2.4");
-		System.load("/usr/include/lib/libopencv_core.so.2.4");
-		System.load("/usr/include/lib/libopencv_highgui.so.2.4");
-		System.load("/usr/include/lib/libopencv_imgproc.so.2.4");
-		System.load("/usr/include/lib/libopencv_nonfree.so.2.4");
-		System.load("/usr/include/lib/libopencv_features2d.so.2.4");
-		System.load("/usr/include/lib/libopencv_legacy.so.2.4");
-		System.load("/usr/include/lib/libopencv_nonfree.so.2.4");
-		System.load("/usr/include/lib/libopencv_calib3d.so.2.4");
-		System.load("/home/diego/workspaceNEW/MirageServerLib/Release/libMirageServerLib.so");
+		try {
+			System.loadLibrary("MirageServer");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
 	}
 }
 

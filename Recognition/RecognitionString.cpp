@@ -184,7 +184,7 @@ inline bool refineMatchesWithHomography
     std::vector<unsigned char> inliersMask(srcPoints.size());
     homography = cv::findHomography(srcPoints,
                                     dstPoints,
-                                    CV_FM_RANSAC,
+                                    CV_RANSAC,
                                     reprojectionThreshold,
                                     inliersMask);
     std::vector<cv::DMatch> inliers;
@@ -204,7 +204,7 @@ inline void showimage(string title, Mat& img)
 	Mat im_out;
 	resize(img,im_out,Size((img.cols/img.rows)*640,640),0,0,INTER_LINEAR);
 	imshow(title,im_out);
-	waitKey(5);
+	waitKey(20);
 }
 inline void extractFeatures(const Mat& img, Mat& des, vector<KeyPoint>& keys)
 {
@@ -264,7 +264,7 @@ inline void drawHomography(Mat& img, const std::vector<KeyPoint>& keypoints_obje
       scene.push_back( keypoints_scene[ good_matches[i].trainIdx ].pt );
     }
 
-    Mat H = findHomography( obj, scene, CV_FM_RANSAC,5 );
+    Mat H = findHomography( obj, scene, CV_RANSAC,4 );
 //
 //    //-- Get the corners from the image_1 ( the object to be "detected" )
     std::vector<Point2f> obj_corners(4);
@@ -304,7 +304,9 @@ inline void match(Mat& m_grayImg, const vector<KeyPoint> &trainKeys, const Mat &
                 vector<DMatch> matches;
                 vector<DMatch> refinedmatches;
                 bf.match(queryDes[i],trainDes, matches);
-                ratiotest(matches,queryDes[i],i);
+
+                //Ratio Test doesn't work with binary descriptors
+                //ratiotest(matches,queryDes[i],i);
 
                 #if _DEBUG
 
@@ -316,7 +318,7 @@ inline void match(Mat& m_grayImg, const vector<KeyPoint> &trainKeys, const Mat &
                 bool homographyFound = refineMatchesWithHomography(
                                         queryKeys[i],trainKeys,
 
-                                        2,
+                                        4,
                                         matches,
                                         m_roughHomography);
                 if(homographyFound){
@@ -325,7 +327,7 @@ inline void match(Mat& m_grayImg, const vector<KeyPoint> &trainKeys, const Mat &
                     Mat m_warpedImg;
                     cv::warpPerspective(m_grayImg, m_warpedImg, m_roughHomography, querySizes[i], cv::INTER_LINEAR);
 
-                    //Shoe Warped Image
+                    //Show Warped Image
                     //showimage("Title",m_warpedImg);
 
                     //Extract Warped Image Keys
@@ -335,15 +337,18 @@ inline void match(Mat& m_grayImg, const vector<KeyPoint> &trainKeys, const Mat &
 
                     //Match
                     bf.match(queryDes[i],warpDes, refinedmatches);
-                    ratiotest(refinedmatches,queryDes[i],i);
+
+                    //Ratio Test doesn't work with binary descriptors
+                    //ratiotest(refinedmatches,queryDes[i],i);
+
                     homographyFound = refineMatchesWithHomography(
                                             queryKeys[i],warpKeys,
 
-                                            2,
+                                            4,
                                             refinedmatches,
                                             m_refinedHomography);
                     if(homographyFound){
-                                  //drawHomography(m_grayImg,queryKeys[i],trainKeys,querySizes[i],matches);
+                                  drawHomography(m_grayImg,queryKeys[i],trainKeys,querySizes[i],matches);
                                   pair <float, int> p(matches.size(), i);
                                   result.push_back(p);
                     }
