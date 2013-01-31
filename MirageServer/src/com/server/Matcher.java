@@ -4,6 +4,7 @@ import java.awt.image.BufferedImage;
 import java.io.BufferedInputStream;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.sql.Connection;
@@ -22,6 +23,7 @@ import com.entity.Mat;
 import com.entity.TargetImage;
 import com.utils.Config;
 import com.utils.ConvertValue;
+import com.utils.Data.Information;
 import com.utils.Util;
 
 /**
@@ -83,33 +85,42 @@ public class Matcher {
 	 */
 	private synchronized static void writeData(Vector<TargetImage> b) {
 		try {
-			BufferedWriter bw = new BufferedWriter(new FileWriter("Data.txt"));
+			ArrayList<String> data = new ArrayList<String>();
 			int dataSize = 1;
 			Iterator<TargetImage> it = b.iterator();
 			int size = b.size();
 			for (int i = 0; i < size; ++i) {
 				TargetImage temp = it.next();
-				// System.out.println("Size:" + temp.dess);
 				dataSize += temp.dess.rows * temp.dess.cols + 3
 						+ temp.keys.size() * 7 + 1;
 			}
-
-			bw.write(dataSize + " ");
-			bw.write(size + " ");
+			data.add(dataSize + "");
+//			System.out.println("dataSize "+dataSize);
+			data.add(size + "");
+//			System.out.println("data "+size);
 			it = b.iterator();
 			for (int i = 0; i < size; ++i) {
 				TargetImage temp = it.next();
-				bw.write(temp.ID + " ");
-				bw.write(temp.width + " ");
-				bw.write(temp.height + " ");
+				data.add(temp.ID + "");
+				data.add(temp.width + "");
+				data.add(temp.height + "");
 				int kSize = temp.keys.size();
-				bw.write(kSize + " ");
+				data.add(kSize + "");
 				for (int j = 0; j < kSize; ++j) {
-					writeKey(bw, temp.keys.get(j));
+					writeKey(data, temp.keys.get(j));
 				}
-				writeDes(bw, temp.dess);
+				writeDes(data, temp.dess);
 			}
-			bw.close();
+
+			Information.Builder info = Information.newBuilder();
+			
+			info.addAllData(data).build();
+
+			
+			
+			FileOutputStream output = new FileOutputStream("data");
+			info.build().writeTo(output);
+			output.close();
 		} catch (Exception exc) {
 			exc.printStackTrace();
 		}
@@ -122,15 +133,15 @@ public class Matcher {
 	 * @param k
 	 * @throws IOException
 	 */
-	private synchronized static void writeKey(BufferedWriter bw, KeyPoint k)
+	private synchronized static void writeKey(ArrayList<String> dat, KeyPoint k)
 			throws IOException {
-		bw.write(k.angle + " ");
-		bw.write(k.classId + " ");
-		bw.write(k.octave + " ");
-		bw.write(k.x + " ");
-		bw.write(k.y + " ");
-		bw.write(k.response + " ");
-		bw.write(k.size + " ");
+		dat.add(k.angle + "");
+		dat.add(k.classId + " ");
+		dat.add(k.octave + " ");
+		dat.add(k.x + " ");
+		dat.add(k.y + " ");
+		dat.add(k.response + " ");
+		dat.add(k.size + " ");
 	}
 
 	/**
@@ -140,15 +151,14 @@ public class Matcher {
 	 * @param k
 	 * @throws IOException
 	 */
-	private synchronized static void writeDes(BufferedWriter bw, Mat k)
+	private synchronized static void writeDes(ArrayList<String> dat, Mat k)
 			throws IOException {
-		// System.out.println("R: " + k.cols + " : " + k.rows);
-		bw.write(k.rows + " ");
-		bw.write(k.cols + " ");
-		bw.write(k.type + " ");
+		dat.add(k.rows + " ");
+		dat.add(k.cols + " ");
+		dat.add(k.type + " ");
 		int size = k.rows * k.cols;
 		for (int i = 0; i < size; ++i) {
-			bw.write(k.data[i] + " ");
+			dat.add(k.data[i] + " ");
 		}
 	}
 

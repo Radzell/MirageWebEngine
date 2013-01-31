@@ -9,6 +9,7 @@
 #include <ctime>
 #include <cstdlib>
 #include <cstdio>
+#include <fstream>
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/nonfree/features2d.hpp>
@@ -17,6 +18,8 @@
 #include <opencv2/nonfree/nonfree.hpp>
 #include <opencv2/calib3d/calib3d.hpp>
 #include "TargetImage.h"
+#include "test.pb.h"
+
 using namespace std;
 using namespace cv;
 
@@ -281,13 +284,13 @@ inline void drawHomography(Mat& img, const std::vector<KeyPoint>& keypoints_obje
 
   //-- Show detected matches
 
-  showimage( "Good Matches & Object detection", img_scene );
+  //showimage( "Good Matches & Object detection", img_scene );
 
 }
 /**
 * Match the query image to images in database. The best matches are returned
 */
-inline void matchtest(Mat& m_grayImg, const vector<KeyPoint> &trainKeys, const Mat &trainDes,vector<pair<float, int> > &result) {
+/*inline void matchtest(Mat& m_grayImg, const vector<KeyPoint> &trainKeys, const Mat &trainDes,vector<pair<float, int> > &result) {
     cv::FlannBasedMatcher bf(new flann::LshIndexParams(20,10,2));
 
     // train the query image
@@ -320,7 +323,7 @@ inline void matchtest(Mat& m_grayImg, const vector<KeyPoint> &trainKeys, const M
           }
 
     }
-}
+}*/
 /**
 * Match the query image to images in database. The best matches are returned
 */
@@ -394,51 +397,40 @@ JNIEXPORT void JNICALL Java_com_server_Matcher_load(JNIEnv *env,jclass obj){
       cerr << "Loading... " << endl;
 
 
-      FILE * pFile;
-      long lSize;
-      char * buffer;
-      size_t sresult;
+      char* file= "data";
 
-      pFile = fopen("Data.txt", "rb");
-      if (pFile == NULL) {
-              fputs("File error", stderr);
-              exit(1);
-      }
+      utils::Information data;
 
-      // obtain file size:
-      fseek(pFile, 0, SEEK_END);
-      lSize = ftell(pFile);
-      rewind(pFile);
+      	fstream input(file, ios::in | ios::binary);
+      	if (!input) {
+      		cout << file << ": File not found.  Creating a new file."
+      				<< endl;
+      	} else if (!data.ParseFromIstream(&input)) {
+      		cerr << "Failed to parse address book." << endl;
+      	}
 
-      // allocate memory to contain the whole file:
-      buffer = (char*) malloc(sizeof(char) * lSize);
-      if (buffer == NULL) {
-              fputs("Memory error", stderr);
-              exit(2);
-      }
+      	cerr << "Start " << endl;
+      	cerr << "File: " << file << endl;
+      	vector<vector<KeyPoint> > queryKeys;
+      	vector<Mat> queryDes;
+      	vector<Size2i> querySizes;
+      	// read image from file
+      	vector<KeyPoint> trainKeys;
+      	Mat trainDes, img = imread("testProto.txt", 0);
+      	vector<pair<float, int> > result;
 
-      // copy the file into the buffer:
-      sresult = fread(buffer, 1, lSize, pFile);
-      if (sresult != lSize) {
-              fputs("Reading error", stderr);
-              exit(3);
-      }
+      	// detect image keypoints
+      	extractFeatures(img, trainDes, trainKeys);
 
-      /* the whole file is now loaded in the memory buffer. */
 
-      // terminateknn
-      //fclose (pFile);
-      int dataSize, count = 0;
-      char *endPtr;
-      dataSize = strtol(buffer, &endPtr, 10);
-      float *mdata = new float[dataSize];
-      // read data as an array of float number
-      for (int i = 0; i < dataSize; ++i) {
-              mdata[i] = strtod(endPtr, &endPtr);
-      }
+      	float *mdata = new float[data.data_size()];
+      	for (int i = 0; i < data.data_size(); i++) {
+      		mdata[i] = atof(data.data(i).c_str());
+      	}
+
+      	int count = 1;
 
       readDB(mdata, count);
-      fclose(pFile);
       delete[] mdata;
       cerr << "Loading Done" << endl;
 
@@ -470,7 +462,7 @@ JNIEXPORT jintArray JNICALL Java_com_server_Matcher_recognition(JNIEnv *env,
         match(img,trainKeys, trainDes, result);
 	int size = min(result.size(), MAX_ITEM);
 	// print out the best result
-	printf("Size: %d\n", result.size());
+	//printf("Size: %d\n", result.size());
 
 	jintArray resultArray;
 	resultArray = (*env).NewIntArray(size);
@@ -496,4 +488,3 @@ JNIEXPORT jintArray JNICALL Java_com_server_Matcher_recognition(JNIEnv *env,
 #ifdef __cplusplus
 }
 #endif
-
