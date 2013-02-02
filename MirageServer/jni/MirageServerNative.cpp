@@ -76,36 +76,7 @@ void readKeyAndDesc(vector<KeyPoint> &trainKeys, Mat &trainDes, float *mdata,
 	trainDes = Mat(rows, cols, CV_8U, data);
 }
 
-/**KeyPoint
- * Read database from an array
- */
-void readDatabase(vector<vector<KeyPoint> > &queryKeys, vector<Mat> &queryDes,
-		vector<Size>& queryDims, float *mdata, int &count) {
-	int querySize;
-	//scanf("%d", &querySize);
-	//ss >> querySize;
-	querySize = mdata[count++];
-	for (int i = 0; i < querySize; ++i) {
-		vector<KeyPoint> qK;
-		Mat qD;
-		Size qS;
-		int ID;
-		TargetImage targetimage;
-		ID = mdata[count++];
-		qS.width = mdata[count++];
-		qS.height = mdata[count++];
-		readKeyAndDesc(qK, qD, mdata, count);
-		queryKeys.push_back(qK);
-		queryDes.push_back(qD);
-		queryDims.push_back(qS);
-		targetimage.setId(ID);
-		targetimage.setSize(qS);
-		targetimage.setDescriptor(qD);
-		targetimage.setKeypoints(qK);
-		targetImages.push_back(targetimage);
 
-	}
-}
 /**KeyPoint
  * Read database from an array
  */
@@ -164,39 +135,50 @@ bool niceHomography(const Mat& H) {
 	return true;
 }
 
-inline bool refineMatchesWithHomography(
-		const std::vector<cv::KeyPoint>& queryKeypoints,
-		const std::vector<cv::KeyPoint>& trainKeypoints,
-		float reprojectionThreshold, std::vector<cv::DMatch>& matches,
-		cv::Mat& homography) {
-	const unsigned int minNumberMatchesAllowed = 15;
+inline bool refineMatchesWithHomography
+    (float &confidence,
+    const std::vector<cv::KeyPoint>& queryKeypoints,
+    const std::vector<cv::KeyPoint>& trainKeypoints,
+    float reprojectionThreshold,
+    std::vector<cv::DMatch>& matches,
+    cv::Mat& homography
+    )
+{
+    const unsigned int minNumberMatchesAllowed = 15;
 
-	if (matches.size() < minNumberMatchesAllowed)
-		return false;
+    if (matches.size() < minNumberMatchesAllowed)
+        return false;
 
-	// Prepare data for cv::findHomography
-	std::vector<cv::Point2f> srcPoints(matches.size());
-	std::vector<cv::Point2f> dstPoints(matches.size());
+    // Prepare data for cv::findHomography
+    std::vector<cv::Point2f> srcPoints(matches.size());
+    std::vector<cv::Point2f> dstPoints(matches.size());
 
-	for (size_t i = 0; i < matches.size(); i++) {
-		srcPoints[i] = trainKeypoints[matches[i].trainIdx].pt;
-		dstPoints[i] = queryKeypoints[matches[i].queryIdx].pt;
-	}
+    for (size_t i = 0; i < matches.size(); i++)
+    {
+        srcPoints[i] = trainKeypoints[matches[i].trainIdx].pt;
+        dstPoints[i] = queryKeypoints[matches[i].queryIdx].pt;
+    }
 
-	// Find homography matrix and get inliers mask
-	std::vector<unsigned char> inliersMask(srcPoints.size());
-	homography = cv::findHomography(srcPoints, dstPoints, CV_FM_RANSAC,
-			reprojectionThreshold, inliersMask);
-	std::vector<cv::DMatch> inliers;
-	for (size_t i = 0; i < inliersMask.size(); i++) {
-		if (inliersMask[i])
-			inliers.push_back(matches[i]);
-	}
+    // Find homography matrix and get inliers mask
+    std::vector<unsigned char> inliersMask(srcPoints.size());
+    homography = cv::findHomography(srcPoints,
+                                    dstPoints,
+                                    CV_FM_RANSAC,
+                                    reprojectionThreshold,
+                                    inliersMask);
+    std::vector<cv::DMatch> inliers;
+    for (size_t i=0; i<inliersMask.size(); i++)
+    {
+        if (inliersMask[i])
+            inliers.push_back(matches[i]);
+    }
+    confidence = (inliers.size() / (8 + 0.3*matches.size()))*100;
 
-	matches.swap(inliers);
-	return (matches.size() > minNumberMatchesAllowed)
-			&& niceHomography(homography);
+
+    matches.swap(inliers);
+    return (matches.size() > minNumberMatchesAllowed) && niceHomography(homography)&& (confidence>55);
 }
+
 
 inline void showimage(string title, Mat& img) {
 	Mat im_out;
@@ -225,32 +207,7 @@ inline void extractFeatures(const Mat& img, Mat& des, vector<KeyPoint>& keys) {
 	// compute image descriptor
 	sde.compute(img, keys, des);
 }
-inline void ratiotest(vector<DMatch> &matches, const Mat& queryDes, int j) {
-	double max_dist = 0;
-	double min_dist = 100;
 
-	//-- Quick calculation of max and min distances between keypoints
-	for (int i = 0; i < queryDes.rows; i++) {
-		double dist = matches[i].distance;
-		if (dist < min_dist)
-			min_dist = dist;
-		if (dist > max_dist)
-			max_dist = dist;
-	}
-
-	//printf("-- Max dist %d: %f \n", j,max_dist );
-	//printf("-- Min dist %d: %f \n", j,min_dist );
-
-	//-- Draw only "good" matches (i.e. whose distance is less than 3*min_dist )
-	std::vector<DMatch> good_matches;
-
-	for (int i = 0; i < queryDes.rows; i++) {
-		if (matches[i].distance < 4 * min_dist) {
-			good_matches.push_back(matches[i]);
-		}
-	}
-	matches.swap(good_matches);
-}
 inline void drawHomography(Mat& img,
 		const std::vector<KeyPoint>& keypoints_object,
 		const std::vector<KeyPoint>& keypoints_scene, const Size& dim,
@@ -262,7 +219,7 @@ inline void drawHomography(Mat& img,
 	std::vector<Point2f> obj;
 	std::vector<Point2f> scene;
 
-	for (int i = 0; i < good_matches.size(); i++) {
+	for (size_t i = 0; i < good_matches.size(); i++) {
 		//-- Get the keypoints from the good matches
 		obj.push_back(keypoints_object[good_matches[i].queryIdx].pt);
 		scene.push_back(keypoints_scene[good_matches[i].trainIdx].pt);
@@ -294,102 +251,66 @@ inline void drawHomography(Mat& img,
 	//showimage( "Good Matches & Object detection", img_scene );
 
 }
+
 /**
- * Match the query image to images in database. The best matches are returned
- */
-/*inline void matchtest(Mat& m_grayImg, const vector<KeyPoint> &trainKeys, const Mat &trainDes,vector<pair<float, int> > &result) {
- cv::FlannBasedMatcher bf(new flann::LshIndexParams(20,10,2));
+* Match the query image to images in database. The best matches are returned
+*/
+inline void match(Mat& m_grayImg, const vector<KeyPoint> &trainKeys, const Mat &trainDes,vector<pair<float, int> > &result) {
+      float confidence=0;
+      cv::FlannBasedMatcher bf(new flann::LshIndexParams(10,10,2));
+      //BFMatcher bf(NORM_HAMMING,true);
 
- // train the query image
- int size = targetImages.size();
- int num_matches_thresh = 6;
- for(int i = 0; i < size; ++i) {
- // compute match score for each image in the database
- vector<DMatch> matches;
- vector<DMatch> refinedmatches;
- bf.match(targetImages[i].getDescriptor(),trainDes, matches);
 
- if(matches.size()< static_cast<size_t>(num_matches_thresh))
- continue;
- // Construct point-point correspondences for homography estimation
- Mat src_points(1, static_cast<int>(matches.size()), CV_32FC2);
- Mat dst_points(1, static_cast<int>(matches.size()), CV_32FC2);
- for (size_t i = 0; i < matches.size(); ++i)
- {
- const DMatch& m = matches[i];
+      // train the query image
+      int size = targetImages.size();
+      for(int i = 0; i < size; ++i) {
+              // compute match score for each image in the database
+              vector<DMatch> matches;
+              vector<DMatch> refinedmatches;
+              bf.match(targetImages[i].getDescriptor(),trainDes, matches);
 
- Point2f p = trainKeys[m.queryIdx].pt;
- p.x -= train.width * 0.5f;
- p.y -= features1.img_size.height * 0.5f;
- src_points.at<Point2f>(0, static_cast<int>(i)) = p;
+              //Find homography transformation and detect good matches
+              cv::Mat m_roughHomography;
+              cv::Mat m_refinedHomography;
 
- p = features2.keypoints[m.trainIdx].pt;
- p.x -= features2.img_size.width * 0.5f;
- p.y -= features2.img_size.height * 0.5f;
- dst_points.at<Point2f>(0, static_cast<int>(i)) = p;
- }
+              bool homographyFound = refineMatchesWithHomography(confidence,
+                                      targetImages[i].getKeypoints(),trainKeys,
 
- }
- }*/
-/**
- * Match the query image to images in database. The best matches are returned
- */
-inline void match(Mat& m_grayImg, const vector<KeyPoint> &trainKeys,
-		const Mat &trainDes, vector<pair<float, int> > &result) {
+                                      4,
+                                      matches,
+                                      m_roughHomography);
+              if(homographyFound){
+                  //Testing the homography
 
-	cv::FlannBasedMatcher bf(new flann::LshIndexParams(20, 10, 2));
-	//BFMatcher bf(NORM_HAMMING,true);
+                  Mat m_warpedImg;
+                  cv::warpPerspective(m_grayImg, m_warpedImg, m_roughHomography, targetImages[i].getSize(), cv::INTER_LINEAR);
 
-	// train the query image
-	int size = targetImages.size();
-	for (int i = 0; i < size; ++i) {
-		// compute match score for each image in the database
-		vector<DMatch> matches;
-		vector<DMatch> refinedmatches;
-		bf.match(targetImages[i].getDescriptor(), trainDes, matches);
-		ratiotest(matches, targetImages[i].getDescriptor(), i);
+                  //Shoe Warped Image
+                  //showimage("Title",m_warpedImg);
 
-		//Find homography transformation and detect good matches
-		cv::Mat m_roughHomography;
-		cv::Mat m_refinedHomography;
+                  //Extract Warped Image Keys
+                  Mat warpDes;
+                  vector<KeyPoint> warpKeys;
+                  extractFeatures(m_grayImg,warpDes,warpKeys);
 
-		bool homographyFound = refineMatchesWithHomography(
-				targetImages[i].getKeypoints(), trainKeys,
+                  //Match
+                  bf.match(targetImages[i].getDescriptor(),warpDes, refinedmatches);
+                  homographyFound = refineMatchesWithHomography(confidence,
+                      targetImages[i].getKeypoints(),warpKeys,
 
-				2, matches, m_roughHomography);
-		if (homographyFound) {
-			//Testing the homography
+                                          4,
+                                          refinedmatches,
+                                          m_refinedHomography);
+                  if(homographyFound){
+                                //drawHomography(m_grayImg,targetImages[i].getKeypoints(),trainKeys,targetImages[i].getSize(),matches);
+                                pair <float, int> p(confidence, targetImages[i].getId());
+                                result.push_back(p);
+                  }
+              }
+      }
 
-			Mat m_warpedImg;
-			cv::warpPerspective(m_grayImg, m_warpedImg, m_roughHomography,
-					targetImages[i].getSize(), cv::INTER_LINEAR);
-
-			//Shoe Warped Image
-			//showimage("Title",m_warpedImg);
-
-			//Extract Warped Image Keys
-			Mat warpDes;
-			vector<KeyPoint> warpKeys;
-			extractFeatures(m_grayImg, warpDes, warpKeys);
-
-			//Match
-			bf.match(targetImages[i].getDescriptor(), warpDes, refinedmatches);
-			ratiotest(refinedmatches, targetImages[i].getDescriptor(), i);
-			homographyFound = refineMatchesWithHomography(
-					targetImages[i].getKeypoints(), warpKeys,
-
-					2, refinedmatches, m_refinedHomography);
-			if (homographyFound) {
-				drawHomography(m_grayImg, targetImages[i].getKeypoints(),
-						trainKeys, targetImages[i].getSize(), matches);
-				pair<float, int> p(matches.size(), targetImages[i].getId());
-				result.push_back(p);
-			}
-		}
-	}
-
-	// sort in descending
-	std::sort(result.begin(), result.end(), compare<float, int>);
+      // sort in descending
+      std::sort(result.begin(), result.end(), compare<float, int>);
 }
 
 /**
