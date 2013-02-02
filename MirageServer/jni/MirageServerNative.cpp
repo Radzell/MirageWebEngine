@@ -163,7 +163,7 @@ inline bool refineMatchesWithHomography
     std::vector<unsigned char> inliersMask(srcPoints.size());
     homography = cv::findHomography(srcPoints,
                                     dstPoints,
-                                    CV_FM_RANSAC,
+                                    CV_RANSAC,
                                     reprojectionThreshold,
                                     inliersMask);
     std::vector<cv::DMatch> inliers;
@@ -225,7 +225,7 @@ inline void drawHomography(Mat& img,
 		scene.push_back(keypoints_scene[good_matches[i].trainIdx].pt);
 	}
 
-	Mat H = findHomography(obj, scene, CV_FM_RANSAC, 5);
+	Mat H = findHomography(obj, scene, CV_RANSAC, 5);
 //
 //    //-- Get the corners from the image_1 ( the object to be "detected" )
 	std::vector<Point2f> obj_corners(4);
