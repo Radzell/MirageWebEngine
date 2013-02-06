@@ -1,0 +1,24 @@
+package utils;
+
+option java_package = "com.utils";
+option java_outer_classname = "Data";
+
+message TargetImage {
+  repeated float keys = 1;
+  repeated int32 des = 2;
+  required int32 id = 3;
+  required int32 width = 4;
+  required int32 height = 5;
+  required int32 rows = 6;
+  required int32 cols = 7;
+  required int32 type = 8;
+  required int32 keyNum = 9;
+	
+}
+
+message VectorTargetImages {
+  repeated TargetImage targets = 1;
+  required int32 dataSize =2;
+  required int32 size =3;
+
+}

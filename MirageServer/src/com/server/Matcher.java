@@ -23,7 +23,7 @@ import com.entity.Mat;
 import com.entity.TargetImage;
 import com.utils.Config;
 import com.utils.ConvertValue;
-import com.utils.Data.Information;
+import com.utils.Data.VectorTargetImages;
 import com.utils.Util;
 
 /**
@@ -85,7 +85,7 @@ public class Matcher {
 	 */
 	private synchronized static void writeData(Vector<TargetImage> b) {
 		try {
-			ArrayList<String> data = new ArrayList<String>();
+
 			int dataSize = 1;
 			Iterator<TargetImage> it = b.iterator();
 			int size = b.size();
@@ -94,32 +94,42 @@ public class Matcher {
 				dataSize += temp.dess.rows * temp.dess.cols + 3
 						+ temp.keys.size() * 7 + 1;
 			}
-			data.add(dataSize + "");
-//			System.out.println("dataSize "+dataSize);
-			data.add(size + "");
-//			System.out.println("data "+size);
+
+			VectorTargetImages.Builder vectorTargets = VectorTargetImages
+					.newBuilder();
+
+			vectorTargets.setDataSize(dataSize);
+			vectorTargets.setSize(size);
+
 			it = b.iterator();
 			for (int i = 0; i < size; ++i) {
 				TargetImage temp = it.next();
-				data.add(temp.ID + "");
-				data.add(temp.width + "");
-				data.add(temp.height + "");
+
+				com.utils.Data.TargetImage.Builder target = com.utils.Data.TargetImage
+						.newBuilder();
+				target.setId(temp.ID);
+				target.setWidth(temp.width);
+				target.setHeight(temp.height);
+
 				int kSize = temp.keys.size();
-				data.add(kSize + "");
+				ArrayList<Float> data = new ArrayList<Float>();
+				target.setKeyNum(kSize);
 				for (int j = 0; j < kSize; ++j) {
 					writeKey(data, temp.keys.get(j));
 				}
-				writeDes(data, temp.dess);
+				target.addAllKeys(data);
+
+				ArrayList<Integer> dataDes = new ArrayList<Integer>();
+				writeDes(target, dataDes, temp.dess);
+
+				target.addAllDes(dataDes);
+
+				vectorTargets.addTargets(target);
+
 			}
 
-			Information.Builder info = Information.newBuilder();
-			
-			info.addAllData(data).build();
-
-			
-			
 			FileOutputStream output = new FileOutputStream("data");
-			info.build().writeTo(output);
+			vectorTargets.build().writeTo(output);
 			output.close();
 		} catch (Exception exc) {
 			exc.printStackTrace();
@@ -133,15 +143,15 @@ public class Matcher {
 	 * @param k
 	 * @throws IOException
 	 */
-	private synchronized static void writeKey(ArrayList<String> dat, KeyPoint k)
+	private synchronized static void writeKey(ArrayList<Float> dat, KeyPoint k)
 			throws IOException {
-		dat.add(k.angle + "");
-		dat.add(k.classId + " ");
-		dat.add(k.octave + " ");
-		dat.add(k.x + " ");
-		dat.add(k.y + " ");
-		dat.add(k.response + " ");
-		dat.add(k.size + " ");
+		dat.add(k.angle);
+		dat.add((float)k.classId);
+		dat.add((float)k.octave);
+		dat.add(k.x);
+		dat.add(k.y);
+		dat.add(k.response);
+		dat.add(k.size);
 	}
 
 	/**
@@ -151,14 +161,15 @@ public class Matcher {
 	 * @param k
 	 * @throws IOException
 	 */
-	private synchronized static void writeDes(ArrayList<String> dat, Mat k)
-			throws IOException {
-		dat.add(k.rows + " ");
-		dat.add(k.cols + " ");
-		dat.add(k.type + " ");
+	private synchronized static void writeDes(
+			com.utils.Data.TargetImage.Builder target, ArrayList<Integer> dat,
+			Mat k) throws IOException {
+		target.setRows(k.rows);
+		target.setCols(k.cols);
+		target.setType(k.type);
 		int size = k.rows * k.cols;
 		for (int i = 0; i < size; ++i) {
-			dat.add(k.data[i] + " ");
+			dat.add(k.data[i]);
 		}
 	}
 

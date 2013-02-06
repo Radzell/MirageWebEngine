@@ -78,6 +78,7 @@
 							</tool>
 						</toolChain>
 					</folderInfo>
+					<fileInfo id="cdt.managedbuild.config.gnu.so.debug.1743043022.2090337276" name="data" rcbsApplicability="disable" resourcePath="data" toolsToInvoke=""/>
 					<sourceEntries>
 						<entry excluding="jni" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="jni"/>

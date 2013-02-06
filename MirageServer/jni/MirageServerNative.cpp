@@ -18,8 +18,7 @@
 #include <opencv2/nonfree/nonfree.hpp>
 #include <opencv2/calib3d/calib3d.hpp>
 #include "TargetImage.h"
-#include "test.pb.h"
-
+#include "newproto.pb.h"
 using namespace std;
 using namespace cv;
 
@@ -40,37 +39,36 @@ extern "C" {
 static vector<TargetImage> targetImages;
 
 /**
- * Convert data stored in an array into keypoints and descriptor
+ * Convert data stored in targetImage into keypoints and descriptor
  */
-void readKeyAndDesc(vector<KeyPoint> &trainKeys, Mat &trainDes, float *mdata,
-		int &count) {
+void readKeyAndDesc(vector<KeyPoint> &trainKeys, Mat &trainDes, utils::TargetImage target) {
 	// doc du lieu
 	int keyNum, octave, classId;
 	float x, y, angle, size, response;
-	keyNum = mdata[count++];
-
+	keyNum = target.keynum();
+	int count = 0;
 	for (int i = 0; i < keyNum; ++i) {
-		angle = mdata[count++];
-		classId = mdata[count++];
-		octave = mdata[count++];
-		x = mdata[count++];
-		y = mdata[count++];
-		response = mdata[count++];
-		size = mdata[count++];
+		angle = target.keys(count++);
+		classId = target.keys(count++);
+		octave = target.keys(count++);
+		x = target.keys(count++);
+		y = target.keys(count++);
+		response = target.keys(count++);
+		size = target.keys(count++);
 		KeyPoint p(x, y, size, angle, response, octave, classId);
 		trainKeys.push_back(p);
 	}
 
 	int rows, cols, type;
 	uchar *data;
-	rows = mdata[count++];
-	cols = mdata[count++];
-	type = mdata[count++];
+	rows = target.rows();
+	cols = target.cols();
+	type = target.type();
 	int matSize = rows * cols;
 
 	data = new uchar[matSize];
 	for (int i = 0; i < matSize; ++i) {
-		data[i] = mdata[count++];
+		data[i] = target.des(i);
 	}
 
 	trainDes = Mat(rows, cols, CV_8U, data);
@@ -78,23 +76,25 @@ void readKeyAndDesc(vector<KeyPoint> &trainKeys, Mat &trainDes, float *mdata,
 
 
 /**KeyPoint
- * Read database from an array
+ * Read database from an vector of targetimages
  */
-void readDB(float *mdata, int &count) {
+void readDB(utils::VectorTargetImages mdata, int &count) {
 	int querySize;
 	//scanf("%d", &querySize);
 	//ss >> querySize;
-	querySize = mdata[count++];
-	for (int i = 0; i < querySize; ++i) {
+	querySize = mdata.datasize();
+	for (int i = 0; i < mdata.targets_size(); ++i) {
+		utils::TargetImage target = mdata.targets(i);
 		vector<KeyPoint> qK;
 		Mat qD;
 		Size qS;
 		int ID;
 		TargetImage targetimage;
-		ID = mdata[count++];
-		qS.width = mdata[count++];
-		qS.height = mdata[count++];
-		readKeyAndDesc(qK, qD, mdata, count);
+		ID = target.id();
+		qS.width = target.width();
+		qS.height = target.height();
+
+		readKeyAndDesc(qK, qD, target);
 
 		targetimage.setId(ID);
 		targetimage.setSize(qS);
@@ -324,12 +324,12 @@ JNIEXPORT void JNICALL Java_com_server_Matcher_load(JNIEnv *env, jclass obj) {
 
 	char* file = "data";
 
-	utils::Information data;
+	utils::VectorTargetImages vectorTargets;
 
 	fstream input(file, ios::in | ios::binary);
 	if (!input) {
 		cout << file << ": File not found.  Creating a new file." << endl;
-	} else if (!data.ParseFromIstream(&input)) {
+	} else if (!vectorTargets.ParseFromIstream(&input)) {
 		cerr << "Failed to parse address book." << endl;
 	}
 
@@ -346,15 +346,10 @@ JNIEXPORT void JNICALL Java_com_server_Matcher_load(JNIEnv *env, jclass obj) {
 	// detect image keypoints
 	extractFeatures(img, trainDes, trainKeys);
 
-	float *mdata = new float[data.data_size()];
-	for (int i = 0; i < data.data_size(); i++) {
-		mdata[i] = atof(data.data(i).c_str());
-	}
 
 	int count = 1;
 
-	readDB(mdata, count);
-	delete[] mdata;
+	readDB(vectorTargets, count);
 	cerr << "Loading Done" << endl;
 
 }
