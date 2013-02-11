@@ -17,7 +17,8 @@ public class LoadInitialTargetsImages {
 	public native void analyzeFeatureRecogn(String path);
 
 	static {
-		System.load("/usr/include/lib/libopencv_core.so.2.4");
+		
+		/*System.load("/usr/include/lib/libopencv_core.so.2.4");
 		System.load("/usr/include/lib/libopencv_highgui.so.2.4");
 		System.load("/usr/include/lib/libopencv_imgproc.so.2.4");
 		System.load("/usr/include/lib/libopencv_nonfree.so.2.4");
@@ -26,6 +27,7 @@ public class LoadInitialTargetsImages {
 		System.load("/usr/include/lib/libopencv_nonfree.so.2.4");
 		System.load("/usr/include/lib/libopencv_calib3d.so.2.4");
 		System.load("/home/diego/workspaceNEW/MirageServerLib/Release/libMirageServerLib.so");
+		*/
 	}
 
 	public static void main(String args[]) {

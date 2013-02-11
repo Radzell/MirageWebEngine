@@ -322,7 +322,7 @@ inline int min(int a, int b) {
 JNIEXPORT void JNICALL Java_com_server_Matcher_load(JNIEnv *env, jclass obj) {
 	cerr << "Loading... " << endl;
 
-	char* file = "data";
+	char* file = "/home/diego/Desktop/Mirage/data.mirage";
 
 	utils::VectorTargetImages vectorTargets;
 

@@ -4,8 +4,12 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
 import java.sql.Connection;
@@ -13,6 +17,7 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Scanner;
 import java.util.Vector;
@@ -50,6 +55,7 @@ public class ServerThread extends Thread {
 	 * Create new instance
 	 */
 	public ServerThread() {
+
 		try {
 			Class.forName(Config.getDriverString()).newInstance();
 			con = DriverManager.getConnection(Config.getDBUrl(),
@@ -194,9 +200,10 @@ public class ServerThread extends Thread {
 			System.out.println("Reading");
 			String image = br.readLine();
 			String temp = null;
-			while ((temp = br.readLine()) != null) {
-				image += "\n" + temp;
-			}
+			/*
+			 * while ((temp = br.readLine()) != null) {
+			 * System.out.println("LLEGO ALGO "+temp); image += "\n" + temp; }
+			 */
 			System.out.println("Read ok");
 
 			try {
@@ -350,10 +357,37 @@ public class ServerThread extends Thread {
 		BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(
 				outToClient));
 		try {
+			System.out.println("MANDA LA INFORMACION");
 
-			bw.write(serializer.serialize(b));
+			String jsonToSend = serializer.serialize(b);
+
+			bw.write(jsonToSend+"||"+"data");
+
+			System.out.println("ENVIADO EL ARCHIVO");
 
 			bw.close();
+			// waitConfirmation();
+		} catch (Exception exc) {
+			exc.printStackTrace();
+		}
+
+	}
+
+	public void sendToClient(String path) {
+		try {
+			OutputStream output = skt.getOutputStream();
+
+			File file = new File(path);
+
+			FileInputStream fileInputStream = new FileInputStream(file);
+			byte[] buffer = new byte[1024 * 1024];
+			int bytesRead = 0;
+
+			while ((bytesRead = fileInputStream.read(buffer)) > 0) {
+				output.write(buffer, 0, bytesRead);
+			}
+
+			fileInputStream.close();
 		} catch (Exception exc) {
 			exc.printStackTrace();
 		}

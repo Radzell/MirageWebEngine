@@ -128,7 +128,7 @@ public class Matcher {
 
 			}
 
-			FileOutputStream output = new FileOutputStream("data");
+			FileOutputStream output = new FileOutputStream("/home/diego/Desktop/Mirage/data.mirage");
 			vectorTargets.build().writeTo(output);
 			output.close();
 		} catch (Exception exc) {
