@@ -3,7 +3,7 @@ package com.entity;
 import java.util.Vector;
 
 /**
- * Contain infomations about a book including id, rating, title, author,
+ * Contain infomations about a targetimage including id, rating, title, author,
  * comment, tags, price, image, keypoints and descriptors.
  * 
  * @author hoangtung
@@ -27,14 +27,14 @@ public class TargetImage implements Comparable<TargetImage> {
 	public byte[] dessbt;
 
 	/**
-	 * Create a empty book
+	 * Create a empty targetimage
 	 */
 	public TargetImage() {
 
 	}
 
 	/**
-	 * Copy data from another book to this book
+	 * Copy data from another targetimage to this targetimage
 	 * 
 	 * @param b
 	 */
@@ -50,7 +50,7 @@ public class TargetImage implements Comparable<TargetImage> {
 	}
 
 	/**
-	 * Create a new book without keypoints and descriptor
+	 * Create a new targetimage without keypoints and descriptor
 	 * 
 	 * @param id
 	 * @param tit
@@ -76,7 +76,7 @@ public class TargetImage implements Comparable<TargetImage> {
 	}
 
 	/**
-	 * Create a new book with keypoints and descriptors
+	 * Create a new targetimage with keypoints and descriptors
 	 * 
 	 * @param id
 	 * @param tit
@@ -137,7 +137,7 @@ public class TargetImage implements Comparable<TargetImage> {
 	}
 
 	/**
-	 * Create a book with keypoints, descritors and number of matches
+	 * Create a targetimage with keypoints, descritors and number of matches
 	 * 
 	 * @param id
 	 * @param tit

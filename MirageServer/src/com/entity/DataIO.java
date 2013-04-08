@@ -64,7 +64,7 @@ public class DataIO {
 	}
 
 	/**
-	 * Create a new book from file
+	 * Create a new targetimage from file
 	 * 
 	 * @param filename
 	 * @return
@@ -103,7 +103,7 @@ public class DataIO {
 	}
 
 	/**
-	 * Insert a book to database
+	 * Insert a targetimage to database
 	 * 
 	 * @param b
 	 */
@@ -131,7 +131,7 @@ public class DataIO {
 	}
 
 	/**
-	 * Get a rough title of a book through its filename
+	 * Get a rough title of a targetimage through its filename
 	 * 
 	 * @param filename
 	 * @return
@@ -142,7 +142,7 @@ public class DataIO {
 	}
 
 	/**
-	 * Add information to a book
+	 * Add information to a targetimage
 	 * 
 	 * @param b
 	 * @param infoFile
@@ -205,7 +205,7 @@ public class DataIO {
 	}
 
 	/**
-	 * Add image to a book
+	 * Add image to a targetimage
 	 * 
 	 * @param b
 	 * @param imageFile
@@ -226,7 +226,7 @@ public class DataIO {
 	}
 
 	/**
-	 * Read information of a book from file
+	 * Read information of a targetimage from file
 	 * 
 	 * @param filename
 	 * @return

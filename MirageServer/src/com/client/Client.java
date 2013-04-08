@@ -74,9 +74,7 @@ public class Client {
 			TargetImage b = DataIO.createTargetImage(filename);
 			dos.writeBytes("MATCH ");
 			int size = b.keys.size();
-			// int dataSize =
-			// size*book.keys.firstElement().getSize()+book.dess.getSize()+1;
-			// dos.writeInt(dataSize);
+
 			dos.writeInt(size);
 			Iterator<KeyPoint> it = b.keys.iterator();
 			for (int i = 0; i < size; ++i) {
@@ -140,20 +138,19 @@ public class Client {
 
 			}
 
-			System.out.println("RESPUESTA "+response);
-			
+			System.out.println("RESPUESTA " + response);
+
 			System.out.println("TAMAÑO QUE LLEGA " + response.length());
-			
-			System.out.println("ELEMENTOS QUE LLEGAN "+count);
+
+			System.out.println("ELEMENTOS QUE LLEGAN " + count);
 
 			System.out.println("Response time: "
 					+ (System.currentTimeMillis() - start) + "ms");
 
 			// getImage(response);
 
-			//sendConfirmation(dos);
+			// sendConfirmation(dos);
 
-			
 			dos.close();
 			skt.close();
 		} catch (UnknownHostException e) {

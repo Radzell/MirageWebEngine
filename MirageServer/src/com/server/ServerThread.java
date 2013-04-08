@@ -48,7 +48,7 @@ public class ServerThread extends Thread {
 	public static final String MATCH = "MATCH";
 	public static final String RATE = "RATE";
 	public static final String SIMILAR = "SIMILAR";
-	public static final int MAX_SIMILAR_BOOK = 10;
+	public static final int MAX_SIMILAR_TARGETIMAGE = 10;
 	private static final String IMAGE = "IMAGE";
 
 	/**
@@ -210,7 +210,7 @@ public class ServerThread extends Thread {
 				Vector<TargetImage> b = getTargetImages(Matcher.match(image));
 				responseTargetImages(b);
 			} catch (Exception exc) {
-				responseError("Cannot find book");
+				responseError("Cannot find TargetImage");
 				exc.printStackTrace();
 				reconnect();
 			}
@@ -222,7 +222,7 @@ public class ServerThread extends Thread {
 	}
 
 	/**
-	 * Get list of books from database with the specified ids
+	 * Get list of targetimages from database with the specified ids
 	 * 
 	 * @param ids
 	 * @return
@@ -246,7 +246,7 @@ public class ServerThread extends Thread {
 		String kypst;
 		String dessst;
 
-		// create a sql statement for selecting books with the listed ids
+		// create a sql statement for selecting targetimages with the listed ids
 		String sql = "select id, _name, _author, _description, _rating, _rateCount, _image,_keypoint,_descriptor from targetimage where id in (";
 		int idSize = ids.size();
 		Iterator<Integer> it = ids.iterator();
@@ -261,7 +261,6 @@ public class ServerThread extends Thread {
 		ResultSet rs = con.createStatement().executeQuery(sql);
 		// get the result and reorder it
 		while (rs.next()) {
-			// System.out.println("Add one book");
 			id = rs.getInt(1);
 			tit = rs.getNString(2);
 			au = rs.getNString(3);
@@ -322,7 +321,7 @@ public class ServerThread extends Thread {
 	}
 
 	/**
-	 * Put book's information in a xml form
+	 * Put targetimage's information in a xml form
 	 * 
 	 * @param targetImage
 	 * @return
@@ -342,13 +341,13 @@ public class ServerThread extends Thread {
 	}
 
 	/**
-	 * Send books' information to user
+	 * Send targetimages' information to user
 	 * 
-	 * @param books
+	 * @param targetimages
 	 */
 	private void responseTargetImages(Vector<TargetImage> b) {
 		if (b == null || b.size() == 0) {
-			responseError("Cannot find book");
+			responseError("Cannot find targetimage");
 			return;
 		}
 		JSONSerializer serializer = new JSONSerializer().include("keysbt",
@@ -361,7 +360,7 @@ public class ServerThread extends Thread {
 
 			String jsonToSend = serializer.serialize(b);
 
-			bw.write(jsonToSend+"||"+"data");
+			bw.write(jsonToSend + "||" + "data");
 
 			System.out.println("ENVIADO EL ARCHIVO");
 
