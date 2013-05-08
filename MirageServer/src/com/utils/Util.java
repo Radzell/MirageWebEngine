@@ -5,18 +5,70 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Vector;
+import java.util.logging.FileHandler;
+import java.util.logging.Logger;
+
+import com.server.Job;
+import com.server.Server;
 
 /**
  * Contains utility functions
+ * 
  * @author hoangtung
- *
+ * 
  */
 public class Util {
-	public static final int mask[] = { 0x000000ff, 0x0000ff00, 0x00ff0000,
-			0xff000000 };
+	public static final int mask[] = { 0x000000ff, 0x0000ff00, 0x00ff0000, 0xff000000 };
+
+	public static String getNameLog() {
+		String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+		return timeStamp;
+	}
+
+	public static FileHandler createLog(Logger logger) {
+		FileHandler fileHandler = null;
+		try {
+			fileHandler = new FileHandler(getNameLog() + ".log", true);
+			logger.addHandler(fileHandler);
+		} catch (SecurityException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
+		return fileHandler;
+	}
+
+	public static void writeLog(Logger logger, Exception exception) {
+		StackTraceElement[] stack = exception.getStackTrace();
+		String theTrace = "";
+		for (StackTraceElement line : stack) {
+			theTrace += line.toString() + "\n";
+		}
+		if (logger.getHandlers().length == 0) {
+			createLog(logger);
+		}
+		if (logger != null) {
+			logger.info(theTrace);
+		}
+	}
+
+	public static void writeLog(Logger logger, String message) {
+		if (logger.getHandlers().length == 0) {
+			createLog(logger);
+		}
+		if (logger != null) {
+			logger.info(message);
+
+		}
+	}
 
 	/**
 	 * Compute average of an array
+	 * 
 	 * @param a
 	 * @return
 	 */
@@ -31,6 +83,7 @@ public class Util {
 
 	/**
 	 * Compute standard deviation of an array
+	 * 
 	 * @param a
 	 * @param aver
 	 * @return
@@ -46,19 +99,21 @@ public class Util {
 
 	/**
 	 * Convert float array to byte array
+	 * 
 	 * @param array
 	 * @return
 	 */
 	public static byte[] floatArrayToByteArray(final float array[]) {
-		ByteBuffer bb = ByteBuffer.allocate(array.length*4);
+		ByteBuffer bb = ByteBuffer.allocate(array.length * 4);
 		FloatBuffer fb = bb.asFloatBuffer();
 		fb.put(array);
-		
+
 		return bb.array();
 	}
 
 	/**
 	 * Convert a float number to byte array
+	 * 
 	 * @param f
 	 * @return
 	 */
@@ -75,6 +130,7 @@ public class Util {
 
 	/**
 	 * Convert an int to byte array
+	 * 
 	 * @param value
 	 * @return
 	 */
@@ -89,19 +145,21 @@ public class Util {
 
 	/**
 	 * Convert int array to byte array
+	 * 
 	 * @param value
 	 * @return
 	 */
 	public static byte[] intArrayToByteArray(int[] value) {
-		ByteBuffer bb = ByteBuffer.allocate(value.length*4);
+		ByteBuffer bb = ByteBuffer.allocate(value.length * 4);
 		IntBuffer intb = bb.asIntBuffer();
 		intb.put(value);
-		
+
 		return bb.array();
 	}
 
 	/**
 	 * Convert byte array to float
+	 * 
 	 * @param b
 	 * @return
 	 */
@@ -118,6 +176,7 @@ public class Util {
 
 	/**
 	 * Convert byte array to float array
+	 * 
 	 * @param barr
 	 * @return
 	 */
@@ -130,6 +189,7 @@ public class Util {
 
 	/**
 	 * Convert byte array to int array
+	 * 
 	 * @param barr
 	 * @return
 	 */
@@ -139,9 +199,10 @@ public class Util {
 		buffer.get(ints);
 		return ints;
 	}
-	
+
 	/**
 	 * Convert a serializable object to byte array
+	 * 
 	 * @param obj
 	 * @return
 	 */
@@ -156,12 +217,13 @@ public class Util {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
+
 		return baos.toByteArray();
 	}
-	
+
 	/**
 	 * Convert byte array to object
+	 * 
 	 * @param b
 	 * @return
 	 */
@@ -179,4 +241,71 @@ public class Util {
 			return null;
 		}
 	}
+
+	public static int numTargets = 0;
+
+	private static Vector<Job> jobsToDo;
+
+	public synchronized static void addJob(Job job) {
+		if (jobsToDo == null) {
+			jobsToDo = new Vector<Job>();
+		}
+		jobsToDo.add(job);
+		Server.recognitionProcess.start();
+	}
+
+	public synchronized static void removeJobFrom(String ip, String hostname) {
+		for (int i = 0; i < jobsToDo.size(); i++) {
+			Job job = jobsToDo.get(i);
+			if (job.getIp().equals(ip) && job.getHostname().equals(hostname)) {
+				jobsToDo.remove(job);
+			}
+		}
+	}
+
+	public static Job getJob() {
+		if (jobsToDo != null) {
+			for (int i = 0; i < jobsToDo.size(); i++) {
+				Job job = jobsToDo.get(i);
+				if (!job.isAssigned()) {
+					job.setAssigned(true);
+					return job;
+				}
+			}
+		}
+		return null;
+	}
+
+	public static void setResultJob(String ip, String hostname, String result) {
+		if (jobsToDo != null) {
+			for (int i = 0; i < jobsToDo.size(); i++) {
+				Job job = jobsToDo.get(i);
+				if (job.getIp().equals(ip) && job.getHostname().equals(hostname)) {
+					job.setResult(result);
+					job.setProcessed(true);
+					jobsToDo.set(i, job);
+				}
+			}
+		}
+	}
+
+	public static String getJobResult(String ip, String hostname) {
+		for (int i = 0; i < jobsToDo.size(); i++) {
+			Job job = jobsToDo.get(i);
+			if (job.getIp().equals(ip) && job.getHostname().equals(hostname)) {
+				if (job.getResult() != null) {
+					return job.getResult();
+				} else {
+					return null;
+				}
+			}
+		}
+		return null;
+	}
+
+	public static boolean checkFileExist(String filename) {
+		File f = new File(Config.getPathUploads() + filename);
+		return f.exists();
+	}
+
 }

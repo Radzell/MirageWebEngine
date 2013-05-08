@@ -13,16 +13,21 @@ public class Config {
 	private static String dbUrl = null;
 	private static String pass = null;
 	private static String user = null;
+	private static String pathFiles = null;
+	private static String pathUploads = null;
 	private static int portNum = -1;
 	
 	static {
 		try {
+			@SuppressWarnings("resource")
 			BufferedReader br = new BufferedReader(new FileReader(config));
 			driver = br.readLine();
 			dbUrl = br.readLine();
 			user = br.readLine();
 			pass = br.readLine();
 			portNum = Integer.valueOf(br.readLine());
+			pathFiles = br.readLine();
+			pathUploads = br.readLine();
 		}
 		catch (Exception exc) {
 			exc.printStackTrace();
@@ -48,4 +53,16 @@ public class Config {
 	public static int getPortNum() {
 		return portNum;
 	}
+
+	public static String getPathFiles() {
+		return pathFiles;
+	}
+
+	public static String getPathUploads() {
+		return pathUploads;
+	}
+
+	
+	
+	
 }

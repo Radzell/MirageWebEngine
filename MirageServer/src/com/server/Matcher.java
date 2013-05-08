@@ -1,11 +1,5 @@
 package com.server;
 
-import java.awt.image.BufferedImage;
-import java.io.BufferedInputStream;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -15,14 +9,12 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Scanner;
 import java.util.Vector;
-
-import javax.imageio.ImageIO;
+import java.util.logging.Logger;
 
 import com.entity.KeyPoint;
 import com.entity.Mat;
 import com.entity.TargetImage;
 import com.utils.Config;
-import com.utils.ConvertValue;
 import com.utils.Data.VectorTargetImages;
 import com.utils.Util;
 
@@ -41,41 +33,42 @@ public class Matcher {
 	private static Scanner in;
 	private static Vector<Integer> IDs;
 
+	private static Logger logger = Logger.getLogger(Matcher.class.getName());
+
 	/**
 	 * Fetch data from database
 	 */
-	static synchronized void fetch() {
+	static synchronized int fetch() {
 		IDs = new Vector<Integer>();
 		Vector<TargetImage> bs = new Vector<TargetImage>();
 		try {
 			Class.forName(Config.getDriverString()).newInstance();
-			System.out.println("Driver Info:" + Config.getDBUrl() + ", "
-					+ Config.getUser() + ", " + Config.getPass());
-			Connection con = DriverManager.getConnection(Config.getDBUrl(),
-					Config.getUser(), Config.getPass());
+			System.out.println("Driver Info:" + Config.getDBUrl() + ", " + Config.getUser() + ", " + Config.getPass());
+			Connection con = DriverManager.getConnection(Config.getDBUrl(), Config.getUser(), Config.getPass());
 
-			PreparedStatement ps = con
-					.prepareStatement("select id, _keypoint, _descriptor, _width, _height from targetimage");
+			PreparedStatement ps = con.prepareStatement("select id, _keypoint, _descriptor, _width, _height from targetimage");
 			ResultSet rs = ps.executeQuery();
 			int count = 0;
 			while (rs.next()) {
 				if (count < 3) {
-
 					count++;
 				}
-				bs.add(new TargetImage(rs.getInt(1), null, null, null, 0, 0,
-						null, (Vector<KeyPoint>) Util.objectFromByteArray(rs
-								.getBytes(2)), (Mat) Util
-								.objectFromByteArray(rs.getBytes(3)), rs
-								.getInt(4), rs.getInt(5)));
+				bs.add(new TargetImage(rs.getInt(1), null, null, null, 0, 0, null, (Vector<KeyPoint>) Util.objectFromByteArray(rs.getBytes(2)), (Mat) Util.objectFromByteArray(rs.getBytes(3)), rs
+						.getInt(4), rs.getInt(5)));
 
 				IDs.add(rs.getInt(1));
 			}
+			
+			System.out.println(bs.size());
+			
 			writeData(bs);
-			load();
+			load(Config.getPathFiles()+"data");
 		} catch (Exception e) {
+			Util.writeLog(logger, e);
 			e.printStackTrace();
-		}
+		}		
+		
+		return IDs.size();
 	}
 
 	/**
@@ -91,12 +84,10 @@ public class Matcher {
 			int size = b.size();
 			for (int i = 0; i < size; ++i) {
 				TargetImage temp = it.next();
-				dataSize += temp.dess.rows * temp.dess.cols + 3
-						+ temp.keys.size() * 7 + 1;
+				dataSize += temp.dess.rows * temp.dess.cols + 3 + temp.keys.size() * 7 + 1;
 			}
 
-			VectorTargetImages.Builder vectorTargets = VectorTargetImages
-					.newBuilder();
+			VectorTargetImages.Builder vectorTargets = VectorTargetImages.newBuilder();
 
 			vectorTargets.setDataSize(dataSize);
 			vectorTargets.setSize(size);
@@ -105,8 +96,7 @@ public class Matcher {
 			for (int i = 0; i < size; ++i) {
 				TargetImage temp = it.next();
 
-				com.utils.Data.TargetImage.Builder target = com.utils.Data.TargetImage
-						.newBuilder();
+				com.utils.Data.TargetImage.Builder target = com.utils.Data.TargetImage.newBuilder();
 				target.setId(temp.ID);
 				target.setWidth(temp.width);
 				target.setHeight(temp.height);
@@ -128,10 +118,13 @@ public class Matcher {
 
 			}
 
-			FileOutputStream output = new FileOutputStream("/home/diego/Desktop/Mirage/data.mirage");
-			vectorTargets.build().writeTo(output);
-			output.close();
+			/*
+			 * FileOutputStream output = new
+			 * FileOutputStream("/home/diego/Desktop/Mirage/data.mirage");
+			 * vectorTargets.build().writeTo(output); output.close();
+			 */
 		} catch (Exception exc) {
+			Util.writeLog(logger, exc);
 			exc.printStackTrace();
 		}
 	}
@@ -143,11 +136,10 @@ public class Matcher {
 	 * @param k
 	 * @throws IOException
 	 */
-	private synchronized static void writeKey(ArrayList<Float> dat, KeyPoint k)
-			throws IOException {
+	private synchronized static void writeKey(ArrayList<Float> dat, KeyPoint k) throws IOException {
 		dat.add(k.angle);
-		dat.add((float)k.classId);
-		dat.add((float)k.octave);
+		dat.add((float) k.classId);
+		dat.add((float) k.octave);
 		dat.add(k.x);
 		dat.add(k.y);
 		dat.add(k.response);
@@ -161,9 +153,7 @@ public class Matcher {
 	 * @param k
 	 * @throws IOException
 	 */
-	private synchronized static void writeDes(
-			com.utils.Data.TargetImage.Builder target, ArrayList<Integer> dat,
-			Mat k) throws IOException {
+	private synchronized static void writeDes(com.utils.Data.TargetImage.Builder target, ArrayList<Integer> dat, Mat k) throws IOException {
 		target.setRows(k.rows);
 		target.setCols(k.cols);
 		target.setType(k.type);
@@ -182,9 +172,9 @@ public class Matcher {
 		return p;
 	}
 
-	public native static int[] recognition(String path);
+	public native static int[] recognition(String path,int begin, int end);
 
-	public native static void load();
+	public native static void load(String path);
 
 	public native static void print();
 
@@ -194,27 +184,17 @@ public class Matcher {
 	 * @param image
 	 * @return ids of the most similar images
 	 */
-	public synchronized static Vector<Integer> match(String image) {
-
-		BufferedImage img = ConvertValue.base64StringToBitmap(image);
+	public static Vector<Integer> match(String image, int begin, int end) {
 		Vector<Integer> ids = new Vector<Integer>();
-		String filename = System.currentTimeMillis() + ".jpg";
-
 		try {
-			ImageIO.write(img, "JPG", new File(filename));
-			System.out.println("Done write");
-			long start = System.currentTimeMillis();
-			System.out.println(filename);
 
 			// Calls jni method to get matches
-			int[] response = recognition(filename);
+			int[] response = recognition(image,begin,end);
 			for (int i = 0; i < response.length; i++) {
 				ids.add(response[i]);
 			}
-
-			System.out.println("Done match "
-					+ (System.currentTimeMillis() - start) + "ms");
 		} catch (Exception exc) {
+			Util.writeLog(logger, exc);
 			exc.printStackTrace();
 		}
 		return ids;
@@ -224,16 +204,22 @@ public class Matcher {
 		try {
 			System.loadLibrary("MirageServer");
 		} catch (Exception e) {
+			Util.writeLog(logger, e);
 			e.printStackTrace();
 		}
 
 	}
+
+	public int sum(int num1, int num2) {
+		int result = num1 + num2;
+		return result;
+	}
+
 }
 
 class MyShutdownHook extends Thread {
 	@Override
 	public void run() {
-
 		Matcher.getProcess().destroy();
 	}
 }

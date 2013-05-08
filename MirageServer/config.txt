@@ -3,3 +3,5 @@ jdbc:mysql://localhost/miragedb
 root
 
 3302
+/home/diego/Desktop/Mirage/
+/home/diego/Desktop/Mirage/uploads/

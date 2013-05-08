@@ -1,23 +1,18 @@
 package com.client;
 
 import java.awt.image.BufferedImage;
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.ObjectOutputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.StringReader;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.Scanner;
-import java.util.Vector;
 
 import javax.imageio.ImageIO;
 import javax.xml.parsers.DocumentBuilder;
@@ -34,13 +29,11 @@ import com.entity.KeyPoint;
 import com.entity.Mat;
 import com.entity.TargetImage;
 import com.utils.ConvertValue;
-import com.utils.Util;
-
-import flexjson.JSONDeserializer;
 
 public class Client {
 
 	static Socket skt;
+	static int port;
 
 	static void writeKey(DataOutputStream dos, KeyPoint k) {
 		try {
@@ -74,7 +67,9 @@ public class Client {
 			TargetImage b = DataIO.createTargetImage(filename);
 			dos.writeBytes("MATCH ");
 			int size = b.keys.size();
-
+			// int dataSize =
+			// size*book.keys.firstElement().getSize()+book.dess.getSize()+1;
+			// dos.writeInt(dataSize);
 			dos.writeInt(size);
 			Iterator<KeyPoint> it = b.keys.iterator();
 			for (int i = 0; i < size; ++i) {
@@ -102,8 +97,7 @@ public class Client {
 		}
 	}
 
-	static void getImage(String xml) throws ParserConfigurationException,
-			SAXException, IOException {
+	static void getImage(String xml) throws ParserConfigurationException, SAXException, IOException {
 		StringReader sr = new StringReader(xml);
 		InputSource is = new InputSource(sr);
 		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
@@ -111,48 +105,32 @@ public class Client {
 		Document dom = db.parse(is);
 		NodeList nl = dom.getElementsByTagName("image");
 		for (int i = 0; i < nl.getLength(); ++i) {
-			BufferedImage img = ConvertValue.base64StringToBitmap(nl.item(i)
-					.getFirstChild().getNodeValue());
+			BufferedImage img = ConvertValue.base64StringToBitmap(nl.item(i).getFirstChild().getNodeValue());
 			ImageIO.write(img, "JPG", new File(i + ".jpg"));
 		}
 	}
 
-	public static void main(String args[]) throws ParserConfigurationException,
-			SAXException {
+	public static void main(String args[]) throws ParserConfigurationException, SAXException {
 
-		DataOutputStream dos;
-		// for(int i = 0; i < 100; ++i)
 		try {
 			skt = new Socket("localhost", 3302);
-			long start = System.currentTimeMillis();
 			// skt = new Socket("184.106.134.110", 3302);
-			dos = new DataOutputStream(skt.getOutputStream());
-			Scanner input = new Scanner(skt.getInputStream());
-			sendMatchString(dos, "posters/JPEG/query/query.jpg");
-			System.out.println("Done send");
-			String response = "";
-			int count = 0;
-			while (input.hasNext()) {
-				response += input.nextLine();
-				count++;
+			long start = System.currentTimeMillis();
+			BufferedReader br = new BufferedReader(new InputStreamReader(skt.getInputStream()));
+			BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(skt.getOutputStream()));
+			System.out.println("Connection established");
+			bw.write("MATCH query.jpg\n");
+			bw.flush();
+			System.out.println("Request send, waiting response");
+			String texto = br.readLine();
+			System.out.println("Response from server: " + texto);
 
-			}
-
-			System.out.println("RESPUESTA " + response);
-
-			System.out.println("TAMAÑO QUE LLEGA " + response.length());
-
-			System.out.println("ELEMENTOS QUE LLEGAN " + count);
-
-			System.out.println("Response time: "
-					+ (System.currentTimeMillis() - start) + "ms");
-
-			// getImage(response);
-
-			// sendConfirmation(dos);
-
-			dos.close();
+			br.close();
+			bw.close();
 			skt.close();
+
+			System.out.println("Response time: " + (System.currentTimeMillis() - start) + "ms");
+
 		} catch (UnknownHostException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -162,42 +140,5 @@ public class Client {
 		}
 	}
 
-	public static void sendConfirmation(OutputStream out) {
-
-		try {
-			BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(out));
-			bw.write("ok");
-			bw.flush();
-			System.out.println("CONFIRMATION SEND");
-
-		} catch (Exception e) {
-			e.printStackTrace();
-			// TODO: handle exception
-		}
-	}
-
-	public static File getFile(String name) {
-		File file = null;
-		try {
-
-			InputStream input = skt.getInputStream();
-
-			file = new File("/home/diego/Desktop/" + name);
-			FileOutputStream out = new FileOutputStream(file);
-
-			byte[] buffer = new byte[1024 * 1024];
-
-			int bytesReceived = 0;
-
-			while ((bytesReceived = input.read(buffer)) > 0) {
-				out.write(buffer, 0, bytesReceived);
-				System.out.println(bytesReceived + "");
-				break;
-			}
-		} catch (Exception e) {
-			// TODO: handle exception
-		}
-
-		return file;
-	}
+	
 }

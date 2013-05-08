@@ -5,6 +5,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 import com.utils.Config;
+import com.utils.Util;
 
 /**
  * Server listens for connection from user and assigns jobs to different threads
@@ -17,6 +18,8 @@ public class Server {
 
 	public static final int MAX_THREAD = 10;
 	ServerSocket ss;
+	
+	public static RecognitionProcess recognitionProcess;
 
 	/**
 	 * Create an instance of server which operates on a specific port
@@ -37,6 +40,9 @@ public class Server {
 		// a special thread for reporting error to user
 		reporter = new ServerThread();
 		reporter.start();
+		
+		recognitionProcess = new RecognitionProcess();
+		
 	}
 
 	/**
@@ -56,8 +62,9 @@ public class Server {
 		}
 
 		// if server is too busy, return a sorry message
-		reporter.responseError("Server is too busy, please try again later");
-		skt.close();
+		// Create new error handler for this situations
+		//new ResponseHandler(skt.getInetAddress()).responseError("Server is too busy, please try again later");
+		//skt.close();
 	}
 
 	/**
@@ -93,7 +100,7 @@ public class Server {
 			}
 		}
 		try {
-			Matcher.fetch();
+			Util.numTargets = Matcher.fetch();
 			new Server(Config.getPortNum()).listen();
 		} catch (IOException e) {
 			e.printStackTrace();

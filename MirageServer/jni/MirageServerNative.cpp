@@ -38,6 +38,19 @@ extern "C" {
 
 static vector<TargetImage> targetImages;
 
+std::clock_t start;
+double duration;
+
+void startTimer() {
+	start = std::clock();
+}
+
+void stopTimer(char* text) {
+	duration = (std::clock() - start) / (double) CLOCKS_PER_SEC;
+
+	cerr << "Time for: " << text << " " << duration << endl;
+}
+
 /**
  * Convert data stored in targetImage into keypoints and descriptor
  */
@@ -74,7 +87,6 @@ void readKeyAndDesc(vector<KeyPoint> &trainKeys, Mat &trainDes, utils::TargetIma
 	trainDes = Mat(rows, cols, CV_8U, data);
 }
 
-
 /**KeyPoint
  * Read database from an vector of targetimages
  */
@@ -109,81 +121,58 @@ void readDB(utils::VectorTargetImages mdata, int &count) {
  *  Checks the homography of the Homography
  */
 bool niceHomography(const Mat& H) {
-	const double det = (H.at<double>(0, 0) * H.at<double>(1, 1))
-			- (H.at<double>(1, 0) * H.at<double>(0, 1));
+	const double det = (H.at<double>(0, 0) * H.at<double>(1, 1)) - (H.at<double>(1, 0) * H.at<double>(0, 1));
 	if (det < 0)
 		return false;
 //
-	const double N1 = sqrt(
-			(H.at<double>(0, 0) * H.at<double>(0, 0))
-					+ (H.at<double>(1, 0) * H.at<double>(1, 0)));
+	const double N1 = sqrt((H.at<double>(0, 0) * H.at<double>(0, 0)) + (H.at<double>(1, 0) * H.at<double>(1, 0)));
 	if (N1 > 4 || N1 < 0.1)
 		return false;
 //
-	const double N2 = sqrt(
-			(H.at<double>(0, 1) * H.at<double>(0, 1))
-					+ (H.at<double>(1, 1) * H.at<double>(1, 1)));
+	const double N2 = sqrt((H.at<double>(0, 1) * H.at<double>(0, 1)) + (H.at<double>(1, 1) * H.at<double>(1, 1)));
 	if (N2 > 4 || N2 < 0.1)
 		return false;
 //
-	const double N3 = sqrt(
-			(H.at<double>(2, 0) * H.at<double>(2, 0))
-					+ (H.at<double>(2, 1) * H.at<double>(2, 1)));
+	const double N3 = sqrt((H.at<double>(2, 0) * H.at<double>(2, 0)) + (H.at<double>(2, 1) * H.at<double>(2, 1)));
 	if (N3 > 0.002)
 		return false;
 
 	return true;
 }
 
-inline bool refineMatchesWithHomography
-    (float &confidence,
-    const std::vector<cv::KeyPoint>& queryKeypoints,
-    const std::vector<cv::KeyPoint>& trainKeypoints,
-    float reprojectionThreshold,
-    std::vector<cv::DMatch>& matches,
-    cv::Mat& homography
-    )
-{
-    const unsigned int minNumberMatchesAllowed = 15;
+inline bool refineMatchesWithHomography(float &confidence, const std::vector<cv::KeyPoint>& queryKeypoints,
+		const std::vector<cv::KeyPoint>& trainKeypoints, float reprojectionThreshold, std::vector<cv::DMatch>& matches, cv::Mat& homography) {
+	const unsigned int minNumberMatchesAllowed = 15;
 
-    if (matches.size() < minNumberMatchesAllowed)
-        return false;
+	if (matches.size() < minNumberMatchesAllowed)
+		return false;
 
-    // Prepare data for cv::findHomography
-    std::vector<cv::Point2f> srcPoints(matches.size());
-    std::vector<cv::Point2f> dstPoints(matches.size());
+	// Prepare data for cv::findHomography
+	std::vector<cv::Point2f> srcPoints(matches.size());
+	std::vector<cv::Point2f> dstPoints(matches.size());
 
-    for (size_t i = 0; i < matches.size(); i++)
-    {
-        srcPoints[i] = trainKeypoints[matches[i].trainIdx].pt;
-        dstPoints[i] = queryKeypoints[matches[i].queryIdx].pt;
-    }
+	for (size_t i = 0; i < matches.size(); i++) {
+		srcPoints[i] = trainKeypoints[matches[i].trainIdx].pt;
+		dstPoints[i] = queryKeypoints[matches[i].queryIdx].pt;
+	}
 
-    // Find homography matrix and get inliers mask
-    std::vector<unsigned char> inliersMask(srcPoints.size());
-    homography = cv::findHomography(srcPoints,
-                                    dstPoints,
-                                    CV_RANSAC,
-                                    reprojectionThreshold,
-                                    inliersMask);
-    std::vector<cv::DMatch> inliers;
-    for (size_t i=0; i<inliersMask.size(); i++)
-    {
-        if (inliersMask[i])
-            inliers.push_back(matches[i]);
-    }
-    confidence = (inliers.size() / (8 + 0.3*matches.size()))*100;
+	// Find homography matrix and get inliers mask
+	std::vector<unsigned char> inliersMask(srcPoints.size());
+	homography = cv::findHomography(srcPoints, dstPoints, CV_RANSAC, reprojectionThreshold, inliersMask);
+	std::vector<cv::DMatch> inliers;
+	for (size_t i = 0; i < inliersMask.size(); i++) {
+		if (inliersMask[i])
+			inliers.push_back(matches[i]);
+	}
+	confidence = (inliers.size() / (8 + 0.3 * matches.size())) * 100;
 
-
-    matches.swap(inliers);
-    return (matches.size() > minNumberMatchesAllowed) && niceHomography(homography)&& (confidence>55);
+	matches.swap(inliers);
+	return (matches.size() > minNumberMatchesAllowed) && niceHomography(homography) && (confidence > 55);
 }
-
 
 inline void showimage(string title, Mat& img) {
 	Mat im_out;
-	resize(img, im_out, Size((img.cols / img.rows) * 640, 640), 0, 0,
-			INTER_LINEAR);
+	resize(img, im_out, Size((img.cols / img.rows) * 640, 640), 0, 0, INTER_LINEAR);
 	imshow(title, im_out);
 	waitKey(5);
 }
@@ -208,9 +197,7 @@ inline void extractFeatures(const Mat& img, Mat& des, vector<KeyPoint>& keys) {
 	sde.compute(img, keys, des);
 }
 
-inline void drawHomography(Mat& img,
-		const std::vector<KeyPoint>& keypoints_object,
-		const std::vector<KeyPoint>& keypoints_scene, const Size& dim,
+inline void drawHomography(Mat& img, const std::vector<KeyPoint>& keypoints_object, const std::vector<KeyPoint>& keypoints_scene, const Size& dim,
 		const vector<DMatch>& good_matches) {
 
 	Mat img_scene = img.clone();
@@ -253,64 +240,54 @@ inline void drawHomography(Mat& img,
 }
 
 /**
-* Match the query image to images in database. The best matches are returned
-*/
-inline void match(Mat& m_grayImg, const vector<KeyPoint> &trainKeys, const Mat &trainDes,vector<pair<float, int> > &result) {
-      float confidence=0;
-      cv::FlannBasedMatcher bf(new flann::LshIndexParams(10,10,2));
-      //BFMatcher bf(NORM_HAMMING,true);
+ * Match the query image to images in database. The best matches are returned
+ */
+inline void match(Mat& m_grayImg, const vector<KeyPoint> &trainKeys, const Mat &trainDes, vector<pair<float, int> > &result, int begin, int end) {
+	float confidence = 0;
+	//cv::FlannBasedMatcher bf(new flann::LshIndexParams(10,10,2));
+	BFMatcher bf(NORM_HAMMING, true);
 
+	// train the query image
+	int size = targetImages.size();
+	for (int i = begin; i < end; ++i) {
+		// compute match score for each image in the database
+		vector<DMatch> matches;
+		vector<DMatch> refinedmatches;
+		bf.match(targetImages[i].getDescriptor(), trainDes, matches);
 
-      // train the query image
-      int size = targetImages.size();
-      for(int i = 0; i < size; ++i) {
-              // compute match score for each image in the database
-              vector<DMatch> matches;
-              vector<DMatch> refinedmatches;
-              bf.match(targetImages[i].getDescriptor(),trainDes, matches);
+		//Find homography transformation and detect good matches
+		cv::Mat m_roughHomography;
+		cv::Mat m_refinedHomography;
+		bool homographyFound = refineMatchesWithHomography(confidence, targetImages[i].getKeypoints(), trainKeys, 4, matches, m_roughHomography);
+		if (homographyFound) {
+			//Testing the homography
 
-              //Find homography transformation and detect good matches
-              cv::Mat m_roughHomography;
-              cv::Mat m_refinedHomography;
+			Mat m_warpedImg;
+			cv::warpPerspective(m_grayImg, m_warpedImg, m_roughHomography, targetImages[i].getSize(), cv::INTER_LINEAR);
 
-              bool homographyFound = refineMatchesWithHomography(confidence,
-                                      targetImages[i].getKeypoints(),trainKeys,
+			//Shoe Warped Image
+			//showimage("Title",m_warpedImg);
 
-                                      4,
-                                      matches,
-                                      m_roughHomography);
-              if(homographyFound){
-                  //Testing the homography
+			//Extract Warped Image Keys
+			Mat warpDes;
+			vector<KeyPoint> warpKeys;
+			extractFeatures(m_grayImg, warpDes, warpKeys);
 
-                  Mat m_warpedImg;
-                  cv::warpPerspective(m_grayImg, m_warpedImg, m_roughHomography, targetImages[i].getSize(), cv::INTER_LINEAR);
+			//Match
+			bf.match(targetImages[i].getDescriptor(), warpDes, refinedmatches);
+			homographyFound = refineMatchesWithHomography(confidence, targetImages[i].getKeypoints(), warpKeys,
 
-                  //Shoe Warped Image
-                  //showimage("Title",m_warpedImg);
+			4, refinedmatches, m_refinedHomography);
+			if (homographyFound) {
+				//drawHomography(m_grayImg,targetImages[i].getKeypoints(),trainKeys,targetImages[i].getSize(),matches);
+				pair<float, int> p(confidence, targetImages[i].getId());
+				result.push_back(p);
+			}
+		}
+	}
 
-                  //Extract Warped Image Keys
-                  Mat warpDes;
-                  vector<KeyPoint> warpKeys;
-                  extractFeatures(m_grayImg,warpDes,warpKeys);
-
-                  //Match
-                  bf.match(targetImages[i].getDescriptor(),warpDes, refinedmatches);
-                  homographyFound = refineMatchesWithHomography(confidence,
-                      targetImages[i].getKeypoints(),warpKeys,
-
-                                          4,
-                                          refinedmatches,
-                                          m_refinedHomography);
-                  if(homographyFound){
-                                //drawHomography(m_grayImg,targetImages[i].getKeypoints(),trainKeys,targetImages[i].getSize(),matches);
-                                pair <float, int> p(confidence, targetImages[i].getId());
-                                result.push_back(p);
-                  }
-              }
-      }
-
-      // sort in descending
-      std::sort(result.begin(), result.end(), compare<float, int>);
+	// sort in descending
+	std::sort(result.begin(), result.end(), compare<float, int>);
 }
 
 /**
@@ -319,10 +296,13 @@ inline void match(Mat& m_grayImg, const vector<KeyPoint> &trainKeys, const Mat &
 inline int min(int a, int b) {
 	return a > b ? b : a;
 }
-JNIEXPORT void JNICALL Java_com_server_Matcher_load(JNIEnv *env, jclass obj) {
+JNIEXPORT void JNICALL Java_com_server_Matcher_load(JNIEnv *env, jclass obj, jstring path) {
 	cerr << "Loading... " << endl;
 
-	char* file = "/home/diego/Desktop/Mirage/data.mirage";
+	const char *file = (*env).GetStringUTFChars(path, 0);
+
+
+	//char* file = "/home/diego/Desktop/Mirage/data";
 
 	utils::VectorTargetImages vectorTargets;
 
@@ -333,8 +313,8 @@ JNIEXPORT void JNICALL Java_com_server_Matcher_load(JNIEnv *env, jclass obj) {
 		cerr << "Failed to parse address book." << endl;
 	}
 
-	cerr << "Start " << endl;
-	cerr << "File: " << file << endl;
+	//cerr << "Start " << endl;
+	//cerr << "File: " << file << endl;
 	vector<vector<KeyPoint> > queryKeys;
 	vector<Mat> queryDes;
 	vector<Size2i> querySizes;
@@ -346,21 +326,23 @@ JNIEXPORT void JNICALL Java_com_server_Matcher_load(JNIEnv *env, jclass obj) {
 	// detect image keypoints
 	extractFeatures(img, trainDes, trainKeys);
 
-
 	int count = 1;
 
 	readDB(vectorTargets, count);
 	cerr << "Loading Done" << endl;
+	(*env).ReleaseStringUTFChars(path, file);
 
 }
 
-JNIEXPORT jintArray JNICALL Java_com_server_Matcher_recognition(JNIEnv *env,
-		jclass obj, jstring path) {
+JNIEXPORT jintArray JNICALL Java_com_server_Matcher_recognition(JNIEnv *env, jclass obj, jstring path, jint jbegin, jint jend) {
 
 	const char *nativeString = (*env).GetStringUTFChars(path, 0);
 
-	cerr << "Start " << endl;
-	cerr << "File: " << nativeString << endl;
+	int begin = (int) jbegin;
+	int end = (int) jend;
+
+	//cerr << "Start " << endl;
+	//cerr << "File: " << nativeString << endl;
 
 	// read image from file
 	vector<KeyPoint> trainKeys;
@@ -370,12 +352,14 @@ JNIEXPORT jintArray JNICALL Java_com_server_Matcher_recognition(JNIEnv *env,
 	// detect image keypoints
 	extractFeatures(img, trainDes, trainKeys);
 
+	//cerr << "SIZE KEYS " << trainKeys.size() << endl;
+
 	//Load trainIG
 	TargetImage trainTI;
 
 	//Change to add the homography and the debug
-	cerr << "Matching begin" << endl;
-	match(img, trainKeys, trainDes, result);
+	//cerr << "Matching begin" << endl;
+	match(img, trainKeys, trainDes, result, begin, end);
 	int size = min(result.size(), MAX_ITEM);
 	// print out the best result
 	//printf("Size: %d\n", result.size());
@@ -390,7 +374,7 @@ JNIEXPORT jintArray JNICALL Java_com_server_Matcher_recognition(JNIEnv *env,
 
 	for (int i = 0; i < size; ++i) {
 		fill[i] = result[i].second;
-		cout << result[i].first << " " << result[i].second << endl;
+		//cout << result[i].first << " " << result[i].second << endl;
 	}
 	trainDes.release();
 	trainKeys.clear();
