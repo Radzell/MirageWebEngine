@@ -4,34 +4,19 @@ import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.Iterator;
-import java.util.Scanner;
-import java.util.Vector;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.logging.Logger;
 
-import com.entity.KeyPoint;
-import com.entity.Mat;
 import com.entity.TargetImage;
-import com.utils.Config;
 import com.utils.Util;
 
-import flexjson.JSONSerializer;
 
 /**
  * ServerThread is responsible for serving user's request.
@@ -52,6 +37,8 @@ public class ServerThread extends Thread {
 	String clientIP;
 	int clientPort;
 	String clientHostname;
+	
+	double timeUsed = 0;
 
 	public static final String NO_JOB = "NO_JOB";
 	public static final String MATCH = "MATCH";
@@ -59,6 +46,7 @@ public class ServerThread extends Thread {
 	public static final String SIMILAR = "SIMILAR";
 	public static final int MAX_SIMILAR_BOOK = 10;
 	private static final String IMAGE = "IMAGE";
+	private static final String HISTORY = "HISTORY";
 
 	private static Logger logger = Logger.getLogger(ServerThread.class.getName());
 
@@ -85,7 +73,7 @@ public class ServerThread extends Thread {
 		clientHostname = skt.getInetAddress().getHostName();
 		String connectionInfo = "Connected from " + skt.getInetAddress() + " on port " + skt.getPort() + " to port " + skt.getLocalPort() + " of "
 				+ skt.getLocalAddress();
-
+		timeUsed = System.currentTimeMillis();
 		Util.writeLog(logger, connectionInfo);
 		try {
 			inFromClient = new BufferedInputStream(skt.getInputStream());
@@ -143,6 +131,10 @@ public class ServerThread extends Thread {
 				s = IMAGE;
 				next = 5;
 				break;
+			case 'H':
+				s = HISTORY;
+				next = 0;
+				break;
 			default:
 				next = 5;
 				s = NO_JOB;
@@ -197,6 +189,7 @@ public class ServerThread extends Thread {
 				job.setFilename(message);
 				job.setIp(clientIP);
 				job.setHostname(clientHostname);
+				job.setTimeInit(timeUsed);
 				Util.addJob(job);
 				while (true) {
 					Thread.sleep(300);
@@ -216,7 +209,7 @@ public class ServerThread extends Thread {
 			bw.close();
 			br.close();
 			skt.close();
-			
+			System.out.println("Time request "+(System.currentTimeMillis()-timeUsed)/1000+"s");
 
 		} catch (IOException e) {
 			Util.writeLog(logger, e);
@@ -287,5 +280,24 @@ public class ServerThread extends Thread {
 
 		return s;
 	}
+	
+	
+//	public void getJobHistory(){
+//		Class.forName(Config.getDriverString()).newInstance();
+//		System.out.println("Driver Info:" + Config.getDBUrl() + ", " + Config.getUser() + ", " + Config.getPass());
+//		 Connection con = DriverManager.getConnection(Config.getDBUrl(),
+//		 Config.getUser(), Config.getPass());
+//
+//		PreparedStatement ps = con.prepareStatement("select * from jobhistory order by requesttime");
+//		ResultSet rs = ps.executeQuery();
+//		while (rs.next()) {
+//			arrayJobs.add(new Job(rs.getInt(1), rs.getString(2), rs.getString(3), rs.getInt(4), rs.getInt(5), rs.getString(6), rs.getInt(7), rs
+//					.getString(8)));
+//		}
+//		System.out.println("ACA");
+//		for (int i = 0; i < arrayJobs.size(); i++) {
+//			writeJob(arrayJobs.get(i));
+//		}
+//	}
 
 }

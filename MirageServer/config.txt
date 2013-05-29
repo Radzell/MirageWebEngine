@@ -5,3 +5,4 @@ root
 3302
 /home/diego/Desktop/Mirage/
 /home/diego/Desktop/Mirage/uploads/
+/opt/lampp/htdocs/posters/

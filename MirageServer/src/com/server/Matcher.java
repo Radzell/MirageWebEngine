@@ -1,5 +1,6 @@
 package com.server;
 
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -53,21 +54,21 @@ public class Matcher {
 				if (count < 3) {
 					count++;
 				}
-				bs.add(new TargetImage(rs.getInt(1), null, null, null, 0, 0, null, (Vector<KeyPoint>) Util.objectFromByteArray(rs.getBytes(2)), (Mat) Util.objectFromByteArray(rs.getBytes(3)), rs
-						.getInt(4), rs.getInt(5)));
+				bs.add(new TargetImage(rs.getInt(1), null, null, null, 0, 0, null, (Vector<KeyPoint>) Util.objectFromByteArray(rs.getBytes(2)),
+						(Mat) Util.objectFromByteArray(rs.getBytes(3)), rs.getInt(4), rs.getInt(5)));
 
 				IDs.add(rs.getInt(1));
 			}
-			
+
 			System.out.println(bs.size());
-			
+
 			writeData(bs);
-			load(Config.getPathFiles()+"data");
+			load(Config.getPathFiles() + "data");
 		} catch (Exception e) {
 			Util.writeLog(logger, e);
 			e.printStackTrace();
-		}		
-		
+		}
+
 		return IDs.size();
 	}
 
@@ -118,11 +119,10 @@ public class Matcher {
 
 			}
 
-			/*
-			 * FileOutputStream output = new
-			 * FileOutputStream("/home/diego/Desktop/Mirage/data.mirage");
-			 * vectorTargets.build().writeTo(output); output.close();
-			 */
+			FileOutputStream output = new FileOutputStream(Config.getPathFiles() + "data");
+			vectorTargets.build().writeTo(output);
+			output.close();
+
 		} catch (Exception exc) {
 			Util.writeLog(logger, exc);
 			exc.printStackTrace();
@@ -172,11 +172,13 @@ public class Matcher {
 		return p;
 	}
 
-	public native static int[] recognition(String path,int begin, int end);
+	public native static int[] recognition(String path, int begin, int end);
 
 	public native static void load(String path);
 
 	public native static void print();
+
+	public native static void analyze(String path);
 
 	/**
 	 * Compare an image to database images to find out the most similar ones.
@@ -187,9 +189,9 @@ public class Matcher {
 	public static Vector<Integer> match(String image, int begin, int end) {
 		Vector<Integer> ids = new Vector<Integer>();
 		try {
-
 			// Calls jni method to get matches
-			int[] response = recognition(image,begin,end);
+			int[] response = recognition(image, begin, end);
+
 			for (int i = 0; i < response.length; i++) {
 				ids.add(response[i]);
 			}

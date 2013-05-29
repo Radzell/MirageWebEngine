@@ -4,10 +4,15 @@ import java.io.*;
 
 /**
  * Get basic configuration for this server
+ * 
  * @author hoangtung
- *
+ * 
  */
 public class Config {
+	
+	
+	
+	//TODO fix the path
 	private static String config = "config.txt";
 	private static String driver = null;
 	private static String dbUrl = null;
@@ -15,8 +20,9 @@ public class Config {
 	private static String user = null;
 	private static String pathFiles = null;
 	private static String pathUploads = null;
+	private static String pathPosters = null;
 	private static int portNum = -1;
-	
+
 	static {
 		try {
 			@SuppressWarnings("resource")
@@ -28,28 +34,28 @@ public class Config {
 			portNum = Integer.valueOf(br.readLine());
 			pathFiles = br.readLine();
 			pathUploads = br.readLine();
-		}
-		catch (Exception exc) {
+			pathPosters = br.readLine();
+		} catch (Exception exc) {
 			exc.printStackTrace();
 		}
 	}
-	
+
 	public static String getDriverString() {
 		return driver;
 	}
-	
+
 	public static String getDBUrl() {
 		return dbUrl;
 	}
-	
+
 	public static String getPass() {
 		return pass;
 	}
-	
+
 	public static String getUser() {
 		return user;
 	}
-	
+
 	public static int getPortNum() {
 		return portNum;
 	}
@@ -62,7 +68,13 @@ public class Config {
 		return pathUploads;
 	}
 
+	public static String getPathPosters() {
+		return pathPosters;
+	}
 	
-	
-	
+	public static void main(String[] args) {
+		new Config();
+	}
+
+
 }

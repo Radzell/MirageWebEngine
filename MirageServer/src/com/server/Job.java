@@ -9,6 +9,7 @@ public class Job {
 	private boolean assigned;
 	private boolean processed;
 	private String result;
+	private double timeInit;
 
 	public Job() {
 		assigned = false;
@@ -61,6 +62,14 @@ public class Job {
 
 	public void setHostname(String hostname) {
 		this.hostname = hostname;
+	}
+
+	public double getTimeInit() {
+		return timeInit;
+	}
+
+	public void setTimeInit(double timeInit) {
+		this.timeInit = timeInit;
 	}
 	
 	

@@ -56,8 +56,7 @@ public class DataIO {
 	static {
 		try {
 			Class.forName(Config.getDriverString()).newInstance();
-			con = DriverManager.getConnection(Config.getDBUrl(),
-					Config.getUser(), Config.getPass());
+			con = DriverManager.getConnection(Config.getDBUrl(), Config.getUser(), Config.getPass());
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -73,8 +72,7 @@ public class DataIO {
 		TargetImage targetimage = null;
 		System.out.println(filename);
 		try {
-			Scanner sc = new Scanner(new BufferedReader(new InputStreamReader(
-					new FileInputStream(filename), "UTF8")));
+			Scanner sc = new Scanner(new BufferedReader(new InputStreamReader(new FileInputStream(filename), "UTF8")));
 			String name, author, description, tags, image;
 			float rating;
 			int rateCount, ID;
@@ -92,8 +90,7 @@ public class DataIO {
 			keys = KeyPoint.keysFromScanner(sc);
 			dess = Mat.matFromScanner(sc);
 
-			targetimage = new TargetImage(ID, name, author, description,
-					rating, rateCount, image, keys, dess);
+			targetimage = new TargetImage(ID, name, author, description, rating, rateCount, image, keys, dess);
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -137,8 +134,10 @@ public class DataIO {
 	 * @return
 	 */
 	public static String getName(String filename) {
-		String s = filename.substring(0, filename.lastIndexOf(splitChar));
-		return s.substring(s.lastIndexOf(splitChar) + 1);
+		String path = filename.substring(0, filename.lastIndexOf(splitChar));
+		path = path.substring(path.lastIndexOf('/') + 1);
+		// return s.substring(s.lastIndexOf(splitChar) + 1);
+		return path;
 	}
 
 	/**
@@ -185,8 +184,7 @@ public class DataIO {
 	 * @param type
 	 * @return
 	 */
-	private static BufferedImage resizeImageWithHint(
-			BufferedImage originalImage, int w, int h, int type) {
+	private static BufferedImage resizeImageWithHint(BufferedImage originalImage, int w, int h, int type) {
 
 		BufferedImage resizedImage = new BufferedImage(w, h, type);
 		Graphics2D g = resizedImage.createGraphics();
@@ -194,12 +192,9 @@ public class DataIO {
 		g.dispose();
 		g.setComposite(AlphaComposite.Src);
 
-		g.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
-				RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-		g.setRenderingHint(RenderingHints.KEY_RENDERING,
-				RenderingHints.VALUE_RENDER_QUALITY);
-		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
-				RenderingHints.VALUE_ANTIALIAS_ON);
+		g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+		g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
 		return resizedImage;
 	}
@@ -213,12 +208,9 @@ public class DataIO {
 	public static void addImage(TargetImage b, String imageFile) {
 		try {
 			BufferedImage img = ImageIO.read(new File(imageFile));
-			int type = img.getType() == 0 ? BufferedImage.TYPE_INT_ARGB : img
-					.getType();
-			b.image = ConvertValue.bitmapToBase64String(resizeImageWithHint(
-					img, S_IMG_W, S_IMG_H, type));
-			b.bigImg = ConvertValue.bitmapToBase64String(resizeImageWithHint(
-					img, B_IMG_W, B_IMG_H, type));
+			int type = img.getType() == 0 ? BufferedImage.TYPE_INT_ARGB : img.getType();
+			b.image = ConvertValue.bitmapToBase64String(resizeImageWithHint(img, S_IMG_W, S_IMG_H, type));
+			b.bigImg = ConvertValue.bitmapToBase64String(resizeImageWithHint(img, B_IMG_W, B_IMG_H, type));
 			// System.out.println("Image size " + b.image.length());
 		} catch (Exception exc) {
 			exc.printStackTrace();
@@ -235,8 +227,7 @@ public class DataIO {
 		TargetImage b = new TargetImage();
 
 		try {
-			Scanner input = new Scanner(new InputStreamReader(
-					new FileInputStream(filename), "UTF-8"));
+			Scanner input = new Scanner(new InputStreamReader(new FileInputStream(filename), "UTF-8"));
 			b.name = getName(input.nextLine());
 			b.description = b.name;
 			b.width = Integer.parseInt(input.nextLine());
@@ -256,18 +247,28 @@ public class DataIO {
 		return b;
 	}
 
+	public static void createNewTarget(String filename) {
+		insertTargetImage(readTargetImage(filename));
+	}
+
 	public static void main(String args[]) {
-		String pathTemp = "posters";
-		System.out.println("Path: " + pathTemp);
-		File folder = new File(pathTemp);
-		File[] listOfFiles = folder.listFiles();
-		for (int i = 0; i < listOfFiles.length; i++) {
-			File file = listOfFiles[i];
-			if (file.isFile() && file.getPath().contains(".txt")) {
-				System.out.println(file.getPath());
-				insertTargetImage(readTargetImage(file.getPath()));
+
+		if (args.length > 0) {
+			String pathTemp = args[0];
+			System.out.println("Path: " + pathTemp);
+			File folder = new File(pathTemp);
+			File[] listOfFiles = folder.listFiles();
+			for (int i = 0; i < listOfFiles.length; i++) {
+				File file = listOfFiles[i];
+				if (file.isFile() && file.getPath().contains(".txt")) {
+					System.out.println(file.getPath());
+					insertTargetImage(readTargetImage(file.getPath()));
+				}
 			}
+		} else {
+			System.out.println("ERROR CON LOS ARGUMENTOS");
 		}
+
 		// Scanner input = new Scanner(System.in);
 		// while (input.hasNext()) {
 		// String s = input.nextLine();

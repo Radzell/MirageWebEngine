@@ -119,12 +119,13 @@ public class Client {
 			BufferedReader br = new BufferedReader(new InputStreamReader(skt.getInputStream()));
 			BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(skt.getOutputStream()));
 			System.out.println("Connection established");
-			bw.write("MATCH query.jpg\n");
+			bw.write("MATCH a1vz50D_460s.jpg\n");
+//			bw.write("MATCH query.jpg\n");
+
 			bw.flush();
 			System.out.println("Request send, waiting response");
 			String texto = br.readLine();
 			System.out.println("Response from server: " + texto);
-
 			br.close();
 			bw.close();
 			skt.close();

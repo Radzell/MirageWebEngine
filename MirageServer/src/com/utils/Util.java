@@ -5,6 +5,9 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import java.nio.IntBuffer;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Vector;
@@ -21,6 +24,36 @@ import com.server.Server;
  * 
  */
 public class Util {
+
+	public static int jobsDone = 0;
+	public static int extractFeaturesTime = 0;
+	public static int matchTime = 0;
+
+	public static synchronized void addExtractFeaturesTime(int time) {
+		extractFeaturesTime += time;
+	}
+
+	public static synchronized void addMatchTime(int time) {
+		matchTime += time;
+		jobsDone++;
+	}
+
+	public static synchronized void restartTime() {
+		extractFeaturesTime = 0;
+		matchTime = 0;
+		jobsDone = 0;
+	}
+
+	public static int getExtractFeaturesTime() {
+		int result = extractFeaturesTime / jobsDone;
+		return result;
+	}
+
+	public static int getMatchTime() {
+		int result = matchTime / jobsDone;
+		return result;
+	}
+
 	public static final int mask[] = { 0x000000ff, 0x0000ff00, 0x00ff0000, 0xff000000 };
 
 	public static String getNameLog() {
@@ -301,6 +334,28 @@ public class Util {
 			}
 		}
 		return null;
+	}
+
+	public static void insertNewRecord(String imageUploaded, int extractfeaturetime, int matchtime, String imageResult, int duration,
+			String ip) {
+		
+		try {
+			Class.forName(Config.getDriverString()).newInstance();
+			Connection con = DriverManager.getConnection(Config.getDBUrl(), Config.getUser(), Config.getPass());
+
+			String sql = "insert into jobhistory (image,extractfeaturetime,matchtime,imageresult,duration,ip) values (?,?,?,?,?,?)";
+			PreparedStatement ps = con.prepareStatement(sql);
+			ps.setNString(1, imageUploaded);
+			ps.setInt(2, extractfeaturetime);
+			ps.setInt(3, matchtime);
+			ps.setString(4, imageResult);
+			ps.setInt(5, duration);
+			ps.setNString(6, ip);
+			int numRowsAffected = ps.executeUpdate();
+			System.out.println("Rows affected: " + numRowsAffected);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	public static boolean checkFileExist(String filename) {

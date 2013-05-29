@@ -17,6 +17,7 @@
 #include <opencv2/features2d/features2d.hpp>
 #include <opencv2/nonfree/nonfree.hpp>
 #include <opencv2/calib3d/calib3d.hpp>
+#include <sys/timeb.h>
 #include "TargetImage.h"
 #include "newproto.pb.h"
 using namespace std;
@@ -41,15 +42,32 @@ static vector<TargetImage> targetImages;
 std::clock_t start;
 double duration;
 
-void startTimer() {
-	start = std::clock();
+int getMilliCount() {
+	timeb tb;
+	ftime(&tb);
+	int nCount = tb.millitm + (tb.time & 0xfffff) * 1000;
+	return nCount;
 }
 
-void stopTimer(char* text) {
-	duration = (std::clock() - start) / (double) CLOCKS_PER_SEC;
-
-	cerr << "Time for: " << text << " " << duration << endl;
+int getMilliSpan(int nTimeStart) {
+	int nSpan = getMilliCount() - nTimeStart;
+	if (nSpan < 0)
+		nSpan += 0x100000 * 1000;
+	return nSpan;
 }
+
+/*void startTimer() {
+ start = std::clock();
+
+ }
+
+ double stopTimer(char* text) {
+
+ duration = (std::clock() - start) / (double) (CLOCKS_PER_SEC / 1000);
+ cerr << "Time for: " << text << " " << duration << endl;
+ return duration;
+
+ }*/
 
 /**
  * Convert data stored in targetImage into keypoints and descriptor
@@ -91,10 +109,8 @@ void readKeyAndDesc(vector<KeyPoint> &trainKeys, Mat &trainDes, utils::TargetIma
  * Read database from an vector of targetimages
  */
 void readDB(utils::VectorTargetImages mdata, int &count) {
-	int querySize;
-	//scanf("%d", &querySize);
-	//ss >> querySize;
-	querySize = mdata.datasize();
+	//int querySize;
+	//querySize = mdata.datasize();
 	for (int i = 0; i < mdata.targets_size(); ++i) {
 		utils::TargetImage target = mdata.targets(i);
 		vector<KeyPoint> qK;
@@ -248,7 +264,7 @@ inline void match(Mat& m_grayImg, const vector<KeyPoint> &trainKeys, const Mat &
 	BFMatcher bf(NORM_HAMMING, true);
 
 	// train the query image
-	int size = targetImages.size();
+	//int size = targetImages.size();
 	for (int i = begin; i < end; ++i) {
 		// compute match score for each image in the database
 		vector<DMatch> matches;
@@ -261,7 +277,6 @@ inline void match(Mat& m_grayImg, const vector<KeyPoint> &trainKeys, const Mat &
 		bool homographyFound = refineMatchesWithHomography(confidence, targetImages[i].getKeypoints(), trainKeys, 4, matches, m_roughHomography);
 		if (homographyFound) {
 			//Testing the homography
-
 			Mat m_warpedImg;
 			cv::warpPerspective(m_grayImg, m_warpedImg, m_roughHomography, targetImages[i].getSize(), cv::INTER_LINEAR);
 
@@ -300,7 +315,6 @@ JNIEXPORT void JNICALL Java_com_server_Matcher_load(JNIEnv *env, jclass obj, jst
 	cerr << "Loading... " << endl;
 
 	const char *file = (*env).GetStringUTFChars(path, 0);
-
 
 	//char* file = "/home/diego/Desktop/Mirage/data";
 
@@ -350,39 +364,142 @@ JNIEXPORT jintArray JNICALL Java_com_server_Matcher_recognition(JNIEnv *env, jcl
 	vector<pair<float, int> > result;
 
 	// detect image keypoints
+	int start = getMilliCount();
 	extractFeatures(img, trainDes, trainKeys);
+
+	int extractFeaturesTime = getMilliSpan(start);
 
 	//cerr << "SIZE KEYS " << trainKeys.size() << endl;
 
 	//Load trainIG
 	TargetImage trainTI;
 
+	int startmatchTime = getMilliCount();
 	//Change to add the homography and the debug
 	//cerr << "Matching begin" << endl;
 	match(img, trainKeys, trainDes, result, begin, end);
+	int matchTime = getMilliSpan(startmatchTime);
+
 	int size = min(result.size(), MAX_ITEM);
 	// print out the best result
 	//printf("Size: %d\n", result.size());
 
 	jintArray resultArray;
-	resultArray = (*env).NewIntArray(size);
+	resultArray = (*env).NewIntArray(size + 2);
 	if (resultArray == NULL) {
 		return NULL; /* out of memory error thrown */
 	}
 
-	jint fill[size];
+	jint fill[size + 2];
 
-	for (int i = 0; i < size; ++i) {
-		fill[i] = result[i].second;
+	fill[0] = extractFeaturesTime;
+	fill[1] = matchTime;
+
+	for (int i = 2; i < size + 2; i++) {
+		fill[i] = result[i - 2].second;
 		//cout << result[i].first << " " << result[i].second << endl;
 	}
+
 	trainDes.release();
 	trainKeys.clear();
-
-	(*env).SetIntArrayRegion(resultArray, 0, size, fill);
+	(*env).SetIntArrayRegion(resultArray, 0, size + 2, fill);
 	(*env).ReleaseStringUTFChars(path, nativeString);
 	return resultArray;
 
+}
+
+/**
+ * Write key to output stream
+ */
+void writeKey(ostream &fout, const KeyPoint &key) {
+	fout << key.angle << endl;
+	fout << key.class_id << endl;
+	fout << key.octave << endl;
+	fout << key.pt.x << endl;
+	fout << key.pt.y << endl;
+	fout << key.response << endl;
+	fout << key.size << endl;
+}
+
+/**
+ * Write multiple keys to output stream
+ */
+void writeKeys(ostream &fout, const vector<KeyPoint> &keys) {
+	int size = keys.size();
+	fout << size << endl;
+	for (int i = 0; i < size; ++i) {
+		writeKey(fout, keys[i]);
+	}
+}
+
+/**
+ * Write descriptor to output stream
+ */
+void writeDes(ostream &fout, const Mat &des) {
+	fout << des.rows << endl;
+	fout << des.cols << endl;
+	if (des.rows == 0 || des.cols == 0) {
+		return;
+	}
+
+//int size = des.rows * des.cols;
+	MatConstIterator_<uchar> it = des.begin<uchar>();
+
+	while (it != des.end<uchar>()) {
+		fout << (int) *it << endl;
+		++it;
+	}
+}
+
+JNIEXPORT jintArray JNICALL Java_com_server_Matcher_analyze(JNIEnv *env, jclass obj, jstring path) {
+
+	const char *nativeString = (*env).GetStringUTFChars(path, 0);
+	string s;
+	FREAK sde;
+	int count = 0;
+	Mat img = imread(nativeString, 0);
+
+	vector<KeyPoint> keys;
+	Mat des;
+
+	int level = 1000;
+	ORB sfd(level);
+	sfd.detect(img, keys);
+// extract only the appropriate number of keypoints
+	while ((keys.size() > 5000) && (keys.size() == 0)) {
+		keys.clear();
+		level += 500;	// increase threshold to reduce number of detected keypoints
+		ORB sfd1(level);
+		sfd1.detect(img, keys);
+		level++;
+		//cout << "Keys: " << keys.size() << endl;
+	}
+
+// compute descriptor from keypoint and image
+	sde.compute(img, keys, des);
+
+	stringstream ss;
+	ss << nativeString << ".txt";
+	ofstream fout(ss.str().c_str());
+	/*
+	 fout << count << endl; // bookId
+	 fout << "Title " << s << endl; // title
+	 fout << "Author " << count << endl; // author
+	 fout << "Info " << count << endl; // info
+	 fout << "Tags " << count << endl; // tags
+	 fout << 0 << endl; // rating
+	 fout << 0 << endl; // rateCount
+	 fout << s << endl; // path to image
+	 fout << 15000 << endl; // price
+	 */
+	fout << nativeString << endl;
+	fout << img.cols << endl;
+	fout << img.rows << endl;
+	writeKeys(fout, keys);
+	//cout << "Keys num " << keys.size() << endl;
+	writeDes(fout, des);
+	fout.close();
+	count++;
 }
 
 #ifdef __cplusplus
