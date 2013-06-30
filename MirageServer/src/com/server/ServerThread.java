@@ -191,7 +191,8 @@ public class ServerThread extends Thread {
 	}
 
 	/**
-	 * Do the matching job: find the best match books and returns them to user
+	 * Do the matching job: find the best match targetimages and returns them to
+	 * user
 	 */
 	private void doMatchString() {
 		BufferedReader br = new BufferedReader(new InputStreamReader(

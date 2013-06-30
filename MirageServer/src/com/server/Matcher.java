@@ -128,7 +128,8 @@ public class Matcher {
 
 			}
 
-			FileOutputStream output = new FileOutputStream("/home/diego/Desktop/Mirage/data.mirage");
+			FileOutputStream output = new FileOutputStream(
+					"/home/radzell/Desktop/data.mirage");
 			vectorTargets.build().writeTo(output);
 			output.close();
 		} catch (Exception exc) {
@@ -146,8 +147,8 @@ public class Matcher {
 	private synchronized static void writeKey(ArrayList<Float> dat, KeyPoint k)
 			throws IOException {
 		dat.add(k.angle);
-		dat.add((float)k.classId);
-		dat.add((float)k.octave);
+		dat.add((float) k.classId);
+		dat.add((float) k.octave);
 		dat.add(k.x);
 		dat.add(k.y);
 		dat.add(k.response);

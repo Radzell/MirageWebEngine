@@ -9,6 +9,7 @@
 #include <ctime>
 #include <cstdlib>
 #include <cstdio>
+#include <ctime>
 #include <fstream>
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
@@ -37,7 +38,8 @@ extern "C" {
 #endif
 
 static vector<TargetImage> targetImages;
-
+std::clock_t start;
+double duration;
 /**
  * Convert data stored in targetImage into keypoints and descriptor
  */
@@ -134,7 +136,15 @@ bool niceHomography(const Mat& H) {
 
 	return true;
 }
+void startTimer() {
+        start = std::clock();
+}
 
+void stopTimer(char* text) {
+        duration = (std::clock() - start) / (double) CLOCKS_PER_SEC;
+
+        cerr << "Time for: " << text << " " << duration << endl;
+}
 inline bool refineMatchesWithHomography
     (float &confidence,
     const std::vector<cv::KeyPoint>& queryKeypoints,
@@ -161,11 +171,13 @@ inline bool refineMatchesWithHomography
 
     // Find homography matrix and get inliers mask
     std::vector<unsigned char> inliersMask(srcPoints.size());
+    startTimer();
     homography = cv::findHomography(srcPoints,
                                     dstPoints,
                                     CV_RANSAC,
                                     reprojectionThreshold,
                                     inliersMask);
+    stopTimer("Test");
     std::vector<cv::DMatch> inliers;
     for (size_t i=0; i<inliersMask.size(); i++)
     {
@@ -322,7 +334,7 @@ inline int min(int a, int b) {
 JNIEXPORT void JNICALL Java_com_server_Matcher_load(JNIEnv *env, jclass obj) {
 	cerr << "Loading... " << endl;
 
-	char* file = "/home/diego/Desktop/Mirage/data.mirage";
+	char* file = "/home/radzell/Desktop/data.mirage";
 
 	utils::VectorTargetImages vectorTargets;
 
@@ -330,7 +342,7 @@ JNIEXPORT void JNICALL Java_com_server_Matcher_load(JNIEnv *env, jclass obj) {
 	if (!input) {
 		cout << file << ": File not found.  Creating a new file." << endl;
 	} else if (!vectorTargets.ParseFromIstream(&input)) {
-		cerr << "Failed to parse address book." << endl;
+		cerr << "Failed to parse address targetimage." << endl;
 	}
 
 	cerr << "Start " << endl;
