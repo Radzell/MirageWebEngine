@@ -8,15 +8,13 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.util.logging.Logger;
 
+import org.json.JSONObject;
+
+import com.entity.DataIO;
 import com.entity.TargetImage;
 import com.utils.Util;
-
 
 /**
  * ServerThread is responsible for serving user's request.
@@ -33,11 +31,13 @@ public class ServerThread extends Thread {
 	// ObjectInputStream in;
 	boolean hasJob;
 	String jobType = NO_JOB;
+	String filename;
+	int idUser;
 
 	String clientIP;
 	int clientPort;
 	String clientHostname;
-	
+
 	double timeUsed = 0;
 
 	public static final String NO_JOB = "NO_JOB";
@@ -113,6 +113,7 @@ public class ServerThread extends Thread {
 		String s = null;
 		int next = 0;
 		try {
+
 			switch (inFromClient.read()) {
 			case 'M':
 				s = MATCH;
@@ -139,7 +140,7 @@ public class ServerThread extends Thread {
 				next = 5;
 				s = NO_JOB;
 			}
-			for (int i = 0; i < next; ++i){
+			for (int i = 0; i < next; ++i) {
 				inFromClient.read();
 			}
 			// System.out.print("OK\n");
@@ -155,13 +156,36 @@ public class ServerThread extends Thread {
 	 * and calls the appropriate function to handle the job
 	 */
 	private void doJob() {
-		jobType = getJobType();
-		if (jobType.equals(MATCH)) {
-			doMatchString();
+		BufferedReader br = null;
+
+		try {
+			br = new BufferedReader(new InputStreamReader(inFromClient));
+			String jsonJob = br.readLine();
+//			System.out.println(jsonJob);
+			JSONObject json = new JSONObject(jsonJob);
+			jobType = json.getString("type");
+			filename = json.getString("filename");
+			idUser = json.getInt("user");
+			
+			System.out.println("TRABAJO DE TIPO "+jobType);
+			
+			if (jobType.equals(MATCH)) {
+				doMatchString();
+			} else if (jobType.equals(IMAGE)) {
+				int targetID = json.getInt("targetid");
+				Matcher.analyze(filename);
+				DataIO.editTarget(filename + ".txt", targetID,idUser);
+				System.out.println("Updated successfully");
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
+
 		jobType = NO_JOB;
 		hasJob = false;
 		try {
+			br.close();
 			inFromClient.close();
 			skt.close();
 		} catch (IOException e) {
@@ -175,21 +199,20 @@ public class ServerThread extends Thread {
 	 */
 	private void doMatchString() {
 		try {
-			BufferedReader br = new BufferedReader(new InputStreamReader(inFromClient));
 			BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(outToClient));
 			String result;
-			String message = br.readLine();
 
 			// TODO the client must send a code to avoid the lose of connection
 			// when different clients have the same IP
-
-			if (Util.checkFileExist(message)) {
+			
+			if (Util.checkFileExist(filename)) {
 
 				Job job = new Job();
-				job.setFilename(message);
+				job.setFilename(filename);
 				job.setIp(clientIP);
 				job.setHostname(clientHostname);
 				job.setTimeInit(timeUsed);
+				job.setIdUser(idUser);
 				Util.addJob(job);
 				while (true) {
 					Thread.sleep(300);
@@ -207,9 +230,8 @@ public class ServerThread extends Thread {
 			bw.flush();
 
 			bw.close();
-			br.close();
 			skt.close();
-			System.out.println("Time request "+(System.currentTimeMillis()-timeUsed)/1000+"s");
+			System.out.println("Time request " + (System.currentTimeMillis() - timeUsed) / 1000 + "s");
 
 		} catch (IOException e) {
 			Util.writeLog(logger, e);
@@ -229,29 +251,32 @@ public class ServerThread extends Thread {
 	 * @throws SQLException
 	 */
 
-//	private void doImage() {
-//		Scanner input = new Scanner(inFromClient);
-//		String id = input.next();
-//		try {
-//			PreparedStatement ps = con.prepareStatement("select bigimage from targetimage where bookid = " + id);
-//			ResultSet rs = ps.executeQuery();
-//			while (rs.next()) {
-//				String img = rs.getString(1);
-//				BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(outToClient));
-//				bw.write(img);
-//				bw.close();
-//			}
-//		} catch (SQLException exc) {
-//			Util.writeLog(logger, exc);
-//			reconnect();
-//			responseError("Cannot load image");
-//			exc.printStackTrace();
-//		} catch (Exception exc) {
-//			Util.writeLog(logger, exc);
-//			responseError("Cannot load image");
-//			exc.printStackTrace();
-//		}
-//	}
+	// private void doImage() {
+	// Scanner input = new Scanner(inFromClient);
+	// String id = input.next();
+	// try {
+	// PreparedStatement ps =
+	// con.prepareStatement("select bigimage from targetimage where bookid = " +
+	// id);
+	// ResultSet rs = ps.executeQuery();
+	// while (rs.next()) {
+	// String img = rs.getString(1);
+	// BufferedWriter bw = new BufferedWriter(new
+	// OutputStreamWriter(outToClient));
+	// bw.write(img);
+	// bw.close();
+	// }
+	// } catch (SQLException exc) {
+	// Util.writeLog(logger, exc);
+	// reconnect();
+	// responseError("Cannot load image");
+	// exc.printStackTrace();
+	// } catch (Exception exc) {
+	// Util.writeLog(logger, exc);
+	// responseError("Cannot load image");
+	// exc.printStackTrace();
+	// }
+	// }
 
 	/**
 	 * Standardize a string to avoid sql error
@@ -280,24 +305,26 @@ public class ServerThread extends Thread {
 
 		return s;
 	}
-	
-	
-//	public void getJobHistory(){
-//		Class.forName(Config.getDriverString()).newInstance();
-//		System.out.println("Driver Info:" + Config.getDBUrl() + ", " + Config.getUser() + ", " + Config.getPass());
-//		 Connection con = DriverManager.getConnection(Config.getDBUrl(),
-//		 Config.getUser(), Config.getPass());
-//
-//		PreparedStatement ps = con.prepareStatement("select * from jobhistory order by requesttime");
-//		ResultSet rs = ps.executeQuery();
-//		while (rs.next()) {
-//			arrayJobs.add(new Job(rs.getInt(1), rs.getString(2), rs.getString(3), rs.getInt(4), rs.getInt(5), rs.getString(6), rs.getInt(7), rs
-//					.getString(8)));
-//		}
-//		System.out.println("ACA");
-//		for (int i = 0; i < arrayJobs.size(); i++) {
-//			writeJob(arrayJobs.get(i));
-//		}
-//	}
+
+	// public void getJobHistory(){
+	// Class.forName(Config.getDriverString()).newInstance();
+	// System.out.println("Driver Info:" + Config.getDBUrl() + ", " +
+	// Config.getUser() + ", " + Config.getPass());
+	// Connection con = DriverManager.getConnection(Config.getDBUrl(),
+	// Config.getUser(), Config.getPass());
+	//
+	// PreparedStatement ps =
+	// con.prepareStatement("select * from jobhistory order by requesttime");
+	// ResultSet rs = ps.executeQuery();
+	// while (rs.next()) {
+	// arrayJobs.add(new Job(rs.getInt(1), rs.getString(2), rs.getString(3),
+	// rs.getInt(4), rs.getInt(5), rs.getString(6), rs.getInt(7), rs
+	// .getString(8)));
+	// }
+	// System.out.println("ACA");
+	// for (int i = 0; i < arrayJobs.size(); i++) {
+	// writeJob(arrayJobs.get(i));
+	// }
+	// }
 
 }

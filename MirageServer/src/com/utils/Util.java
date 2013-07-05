@@ -359,7 +359,7 @@ public class Util {
 	}
 
 	public static boolean checkFileExist(String filename) {
-		File f = new File(Config.getPathUploads() + filename);
+		File f = new File(filename);
 		return f.exists();
 	}
 

@@ -79,7 +79,15 @@ public class RecognitionProcess {
 	}
 
 	public void startProcess(Job job) {
+
+		Util.numTargets = Matcher.fetch(job.getIdUser());
+
+
 		int nrOfProcessors = Runtime.getRuntime().availableProcessors();
+		if (Util.numTargets < nrOfProcessors) {
+			nrOfProcessors = Util.numTargets;
+		}
+
 		es = Executors.newFixedThreadPool(nrOfProcessors);
 
 		resultIds = new Vector<Integer>();
@@ -92,20 +100,25 @@ public class RecognitionProcess {
 		}
 
 		NUM_OF_TASKS = nrOfProcessors;
+		
 
 		int beginThisCore = 0;
-		int endThisCore = beginThisCore + targetsPerCore - 1;
+		int endThisCore = beginThisCore + targetsPerCore;
 
 		for (int i = 0; i < NUM_OF_TASKS; i++) {
-			if (i == (NUM_OF_TASKS - 1)) {
-				extLastCore = endThisCore - Util.numTargets;
-				endThisCore -= extLastCore + 1;
+			if (i == (NUM_OF_TASKS - 1)&&endThisCore<Util.numTargets) {
+				endThisCore = Util.numTargets;
+				
 			}
+			if(endThisCore<beginThisCore){
+				endThisCore = beginThisCore;
+			}
+			
 			CallBackTask task = new CallBackTask(i, beginThisCore, endThisCore, job);
 			task.setCaller(this);
 			es.submit(task);
 
-			beginThisCore = endThisCore + 1;
+			beginThisCore = endThisCore;
 			endThisCore = beginThisCore + targetsPerCore;
 		}
 	}
@@ -126,11 +139,10 @@ public class RecognitionProcess {
 				resultIds.add(result.get(i));
 			}
 		}
-
-		if (++cnt == NUM_OF_TASKS) {
+		cnt++;
+		if (cnt == NUM_OF_TASKS) {
 			ResponseHandler responseHandler = new ResponseHandler(job.getIp(), job.getHostname());
 			try {
-
 				Vector<TargetImage> b = getTargetImages(resultIds);
 				// Vector<TargetImage> b =
 				// getTargetImages(Matcher.match("/home/diego/MirageFiles/uploads/"
@@ -141,9 +153,9 @@ public class RecognitionProcess {
 					imageResult = b.get(0).name;
 				}
 
-				int duration = (int) (System.currentTimeMillis()- job.getTimeInit());
-				
-				Util.insertNewRecord(job.getFilename(), Util.getExtractFeaturesTime(), Util.getMatchTime(), imageResult, duration , job.getIp());
+				int duration = (int) (System.currentTimeMillis() - job.getTimeInit());
+
+				Util.insertNewRecord(job.getFilename(), Util.getExtractFeaturesTime(), Util.getMatchTime(), imageResult, duration, job.getIp());
 				Util.restartTime();
 
 				responseHandler.responseTargetImages(b);

@@ -19,6 +19,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
+import org.json.JSONObject;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
@@ -119,8 +120,18 @@ public class Client {
 			BufferedReader br = new BufferedReader(new InputStreamReader(skt.getInputStream()));
 			BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(skt.getOutputStream()));
 			System.out.println("Connection established");
-			bw.write("MATCH a1vz50D_460s.jpg\n");
-//			bw.write("MATCH query.jpg\n");
+			// Server
+			// bw.write("MATCH IMG_20130529_200406.jpg\n");
+			// MY PC
+			// bw.write("MATCH IMG_20130529_193931.jpg\n");
+
+			JSONObject newJob = new JSONObject();
+
+			newJob.put("type", "MATCH");
+			newJob.put("filename", "/home/diego/AptanaStudioWorkspace/MirageWebApp-master/public/system/uploads/uploads/000/000/090/original/iron-man-3-poster.jpg");
+			newJob.put("user", 0);
+
+			bw.write(newJob.toString() + "\n");
 
 			bw.flush();
 			System.out.println("Request send, waiting response");
@@ -141,5 +152,4 @@ public class Client {
 		}
 	}
 
-	
 }

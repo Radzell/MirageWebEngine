@@ -39,15 +39,22 @@ public class Matcher {
 	/**
 	 * Fetch data from database
 	 */
-	static synchronized int fetch() {
+	static synchronized int fetch(int idAuthor) {
 		IDs = new Vector<Integer>();
 		Vector<TargetImage> bs = new Vector<TargetImage>();
 		try {
 			Class.forName(Config.getDriverString()).newInstance();
-			System.out.println("Driver Info:" + Config.getDBUrl() + ", " + Config.getUser() + ", " + Config.getPass());
+			// System.out.println("Driver Info:" + Config.getDBUrl() + ", " +
+			// Config.getUser() + ", " + Config.getPass());
 			Connection con = DriverManager.getConnection(Config.getDBUrl(), Config.getUser(), Config.getPass());
 
-			PreparedStatement ps = con.prepareStatement("select id, _keypoint, _descriptor, _width, _height from targetimage");
+			String sql = "select id, _keypoint, _descriptor, _width, _height from targetimage";
+
+			if (idAuthor != 0) {
+				sql += " where _author =" + idAuthor;
+			}
+
+			PreparedStatement ps = con.prepareStatement(sql);
 			ResultSet rs = ps.executeQuery();
 			int count = 0;
 			while (rs.next()) {
@@ -56,11 +63,8 @@ public class Matcher {
 				}
 				bs.add(new TargetImage(rs.getInt(1), null, null, null, 0, 0, null, (Vector<KeyPoint>) Util.objectFromByteArray(rs.getBytes(2)),
 						(Mat) Util.objectFromByteArray(rs.getBytes(3)), rs.getInt(4), rs.getInt(5)));
-
 				IDs.add(rs.getInt(1));
 			}
-
-			System.out.println(bs.size());
 
 			writeData(bs);
 			load(Config.getPathFiles() + "data");
@@ -70,6 +74,25 @@ public class Matcher {
 		}
 
 		return IDs.size();
+	}
+
+	static synchronized Vector<Integer> getIds(int idOwner) {
+		Vector<Integer> arrayIds = new Vector<Integer>();
+		try {
+			Class.forName(Config.getDriverString()).newInstance();
+			Connection con = DriverManager.getConnection(Config.getDBUrl(), Config.getUser(), Config.getPass());
+
+			PreparedStatement ps = con.prepareStatement("select id from targetimage where owner =" + idOwner);
+			ResultSet rs = ps.executeQuery();
+			while (rs.next()) {
+				arrayIds.add(rs.getInt(1));
+			}
+		} catch (Exception e) {
+			Util.writeLog(logger, e);
+			e.printStackTrace();
+		}
+
+		return arrayIds;
 	}
 
 	/**

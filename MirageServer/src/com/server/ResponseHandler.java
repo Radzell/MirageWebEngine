@@ -3,6 +3,8 @@ package com.server;
 import java.util.Vector;
 import java.util.logging.Logger;
 
+import org.json.JSONObject;
+
 import com.entity.TargetImage;
 import com.utils.Util;
 
@@ -29,7 +31,7 @@ public class ResponseHandler {
 			try {
 				String fileName = b.get(0).name;
 				fileName = fileName.substring(fileName.lastIndexOf('/') + 1) + ".jpg";
-				responseJson(0, fileName);
+				responseJson(0, fileName,b.get(0).ID);
 
 			} catch (Exception exc) {
 				Util.writeLog(logger, exc);
@@ -45,15 +47,16 @@ public class ResponseHandler {
 	 * @param message
 	 */
 	public void responseError(String message) {
-		responseJson(1, "");
+		responseJson(1, "",0);
 	}
 
 	/**
 	 * create a json with a simple structure to send
+	 * 
 	 * @param code
 	 * @param url
 	 */
-	public void responseJson(int code, String url) {
+	public void responseJson(int code, String url,int target_id) {
 		String message = "";
 		switch (code) {
 		case 0:
@@ -71,11 +74,17 @@ public class ResponseHandler {
 			break;
 		}
 
-		String jsonResponse = "{\"response\":{\"code\":" + code + ",\"message\":\"" + message + "\"},\"URL\":\"" + url + "\"}";
+		JSONObject jsonResponse = new JSONObject();
+		JSONObject responseInfo = new JSONObject();
+		responseInfo.put("code", code);
+		responseInfo.put("message", message);
+		jsonResponse.put("response", responseInfo);
+		jsonResponse.put("URL", url);
+		jsonResponse.put("id", target_id);
 
-		System.out.println(jsonResponse);
+		System.out.println(jsonResponse.toString());
 
-		Util.setResultJob(clientIP, clientHostname, jsonResponse);
+		Util.setResultJob(clientIP, clientHostname, jsonResponse.toString());
 
 	}
 

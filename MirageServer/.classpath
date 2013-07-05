@@ -13,5 +13,6 @@
 	<classpathentry kind="lib" path="libs/flexjson-2.1.jar"/>
 	<classpathentry kind="lib" path="libs/protobuf.jar"/>
 	<classpathentry kind="lib" path="libs/TargetManager.jar"/>
+	<classpathentry kind="lib" path="libs/json.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

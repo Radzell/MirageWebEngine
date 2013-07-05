@@ -27,6 +27,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+import com.server.Matcher;
 import com.utils.Config;
 import com.utils.ConvertValue;
 import com.utils.Util;
@@ -120,6 +121,31 @@ public class DataIO {
 			ps.setString(9, String.valueOf(b.height));
 			ps.setBytes(10, Util.objectToByteArray(b.keys));
 			ps.setBytes(11, Util.objectToByteArray(b.dess));
+
+			ps.execute();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+	}
+
+	public static void editTargetImage(TargetImage b, int id, int idUser) {
+		// String sql =
+		// "update into targetimage (_image, _bigImage,_width,_height, _keypoint, _descriptor) values (?, ?,?,?, ?, ?)";
+
+		String sql = "update targetimage set _image = ?,_bigImage=?,_width=?,_height=?, _keypoint=?, _descriptor=?, _rating=?, _rateCount = ?,_author = ? where id="
+				+ id;
+
+		try {
+			PreparedStatement ps = con.prepareStatement(sql);
+			ps.setString(1, b.image);
+			ps.setString(2, b.bigImg);
+			ps.setString(3, String.valueOf(b.width));
+			ps.setString(4, String.valueOf(b.height));
+			ps.setBytes(5, Util.objectToByteArray(b.keys));
+			ps.setBytes(6, Util.objectToByteArray(b.dess));
+			ps.setInt(7, 0);
+			ps.setInt(8, 0);
+			ps.setInt(9, idUser);
 
 			ps.execute();
 		} catch (SQLException e) {
@@ -251,23 +277,44 @@ public class DataIO {
 		insertTargetImage(readTargetImage(filename));
 	}
 
-	public static void main(String args[]) {
+	public static void editTarget(String filename, int id, int idUser) {
+		editTargetImage(readTargetImage(filename), id, idUser);
+	}
 
-		if (args.length > 0) {
-			String pathTemp = args[0];
-			System.out.println("Path: " + pathTemp);
-			File folder = new File(pathTemp);
-			File[] listOfFiles = folder.listFiles();
-			for (int i = 0; i < listOfFiles.length; i++) {
-				File file = listOfFiles[i];
-				if (file.isFile() && file.getPath().contains(".txt")) {
-					System.out.println(file.getPath());
-					insertTargetImage(readTargetImage(file.getPath()));
-				}
+	public static void main(String args[]) {
+		try {
+			if (args.length == 2) {
+				String filename = args[0];
+				Matcher.analyze(filename);
+				int id = Integer.parseInt(args[1]);
+				DataIO.editTarget(filename + ".txt", id,1);
+				System.out.println("Updated successfully");
+
+			} else if (args.length > 2) {
+				System.out.println("Error too much arguments");
+			} else {
+				System.out.println("Error need more arguments");
 			}
-		} else {
-			System.out.println("ERROR CON LOS ARGUMENTOS");
+
+		} catch (Exception e) {
+			System.out.println("Something went wrong");
 		}
+
+		// if (args.length > 0) {
+		// String pathTemp = args[0];
+		// System.out.println("Path: " + pathTemp);
+		// File folder = new File(pathTemp);
+		// File[] listOfFiles = folder.listFiles();
+		// for (int i = 0; i < listOfFiles.length; i++) {
+		// File file = listOfFiles[i];
+		// if (file.isFile() && file.getPath().contains(".txt")) {
+		// System.out.println(file.getPath());
+		// insertTargetImage(readTargetImage(file.getPath()));
+		// }
+		// }
+		// } else {
+		// System.out.println("ERROR CON LOS ARGUMENTOS");
+		// }
 
 		// Scanner input = new Scanner(System.in);
 		// while (input.hasNext()) {

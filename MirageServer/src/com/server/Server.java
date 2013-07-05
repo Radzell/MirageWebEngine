@@ -3,7 +3,17 @@ package com.server;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Iterator;
+import java.util.Vector;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
+
+import com.entity.DataIO;
 import com.utils.Config;
 import com.utils.Util;
 
@@ -18,7 +28,9 @@ public class Server {
 
 	public static final int MAX_THREAD = 10;
 	ServerSocket ss;
-	
+
+	ExecutorService es;
+
 	public static RecognitionProcess recognitionProcess;
 
 	/**
@@ -40,9 +52,13 @@ public class Server {
 		// a special thread for reporting error to user
 		reporter = new ServerThread();
 		reporter.start();
-		
+
 		recognitionProcess = new RecognitionProcess();
-		
+
+	}
+
+	public Server() {
+
 	}
 
 	/**
@@ -63,8 +79,9 @@ public class Server {
 
 		// if server is too busy, return a sorry message
 		// Create new error handler for this situations
-		//new ResponseHandler(skt.getInetAddress()).responseError("Server is too busy, please try again later");
-		//skt.close();
+		// new
+		// ResponseHandler(skt.getInetAddress()).responseError("Server is too busy, please try again later");
+		// skt.close();
 	}
 
 	/**
@@ -92,18 +109,102 @@ public class Server {
 	}
 
 	public static void main(String args[]) {
-		if (args != null && args.length > 0) {
-			try {
-				daemonize();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
 		try {
-			Util.numTargets = Matcher.fetch();
-			new Server(Config.getPortNum()).listen();
-		} catch (IOException e) {
+			if (args != null && args.length == 2) {
+				String filename = args[0];
+				Matcher.analyze(filename);
+				int id = Integer.parseInt(args[1]);
+				DataIO.editTarget(filename + ".txt", id,1);
+				System.out.println("Updated successfully");
+			} else {
+				daemonize();
+				new Server(Config.getPortNum()).listen();
+			}
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
+
+	}
+
+	public void startProcess(Job job) {
+
+		int NUM_OF_TASKS = 1;
+
+		int nrOfProcessors = Runtime.getRuntime().availableProcessors();
+		es = Executors.newFixedThreadPool(nrOfProcessors);
+
+
+		int targetsPerCore = (int) Util.numTargets / nrOfProcessors;
+		int extLastCore = 0;
+
+		if ((targetsPerCore * nrOfProcessors) != Util.numTargets) {
+			extLastCore = Util.numTargets - (targetsPerCore * nrOfProcessors);
+		}
+
+		NUM_OF_TASKS = nrOfProcessors;
+
+		int beginThisCore = 0;
+		int endThisCore = beginThisCore + targetsPerCore - 1;
+
+		for (int i = 0; i < NUM_OF_TASKS; i++) {
+			if (i == (NUM_OF_TASKS - 1)) {
+				extLastCore = endThisCore - Util.numTargets;
+				endThisCore -= extLastCore + 1;
+			}
+			CallBackTest task = new CallBackTest(i, beginThisCore, endThisCore, job);
+			task.setCaller(this);
+			es.submit(task);
+
+			beginThisCore = endThisCore + 1;
+			endThisCore = beginThisCore + targetsPerCore;
+		}
+	}
+
+	public void callback(Vector<Integer> result) {
+		// System.out.println("RESULT SIZE " + result.size());
+		if (result.size() > 2) {
+			System.out.println(result.get(2));
+			try {
+				Class.forName(Config.getDriverString()).newInstance();
+				Connection con = DriverManager.getConnection(Config.getDBUrl(), Config.getUser(), Config.getPass());
+				Vector<Integer> tempo = new Vector<Integer>();
+				tempo.add(result.get(2));
+				getTargetImages(tempo, con);
+				es.shutdown();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+
+		}
+	}
+
+	private String getTargetImages(Vector<Integer> ids, Connection con) throws SQLException {
+
+		// create a sql statement for selecting books with the listed ids
+		String sql = "select _name from targetimage where id in (";
+
+		int idSize = ids.size();
+		Iterator<Integer> it = ids.iterator();
+		for (int i = 0; i < idSize; ++i) {
+			sql += it.next();
+			if (i < idSize - 1) {
+				sql += ", ";
+			}
+		}
+		sql += ")";
+
+		String name = "";
+		// System.out.println("SQL " + sql);
+		if (ids.size() > 0) {
+			ResultSet rs = con.createStatement().executeQuery(sql);
+			// get the result and reorder it
+			while (rs.next()) {
+				// System.out.println("Add one book");
+				System.out.println(rs.getNString(1));
+				name = rs.getNString(1);
+			}
+		}
+
+		return name;
 	}
 }

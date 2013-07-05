@@ -312,7 +312,7 @@ inline int min(int a, int b) {
 	return a > b ? b : a;
 }
 JNIEXPORT void JNICALL Java_com_server_Matcher_load(JNIEnv *env, jclass obj, jstring path) {
-	cerr << "Loading... " << endl;
+	//cerr << "Loading... " << endl;
 
 	const char *file = (*env).GetStringUTFChars(path, 0);
 
@@ -343,12 +343,22 @@ JNIEXPORT void JNICALL Java_com_server_Matcher_load(JNIEnv *env, jclass obj, jst
 	int count = 1;
 
 	readDB(vectorTargets, count);
-	cerr << "Loading Done" << endl;
+	//cerr << "Loading Done" << endl;
 	(*env).ReleaseStringUTFChars(path, file);
 
 }
 
 JNIEXPORT jintArray JNICALL Java_com_server_Matcher_recognition(JNIEnv *env, jclass obj, jstring path, jint jbegin, jint jend) {
+
+
+
+//	jsize arrayCount = (*env).GetArrayLength(arrayIds);
+//
+//	jint bufIds[arrayCount];
+//
+//	(*env).GetIntArrayRegion(arrayIds, 0, arrayCount, bufIds);
+
+
 
 	const char *nativeString = (*env).GetStringUTFChars(path, 0);
 
@@ -479,6 +489,8 @@ JNIEXPORT jintArray JNICALL Java_com_server_Matcher_analyze(JNIEnv *env, jclass 
 	sde.compute(img, keys, des);
 
 	stringstream ss;
+
+
 	ss << nativeString << ".txt";
 	ofstream fout(ss.str().c_str());
 	/*

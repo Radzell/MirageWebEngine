@@ -6,6 +6,7 @@ public class Job {
 	private String filename;
 	private String ip;
 	private String hostname;
+	private int idUser;
 	private boolean assigned;
 	private boolean processed;
 	private String result;
@@ -70,6 +71,14 @@ public class Job {
 
 	public void setTimeInit(double timeInit) {
 		this.timeInit = timeInit;
+	}
+
+	public int getIdUser() {
+		return idUser;
+	}
+
+	public void setIdUser(int idUser) {
+		this.idUser = idUser;
 	}
 	
 	
