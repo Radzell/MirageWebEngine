@@ -11,23 +11,22 @@ import java.io.File;
  */
 public class LoadInitialTargetsImages {
 
-
 	public native void callFeatureRecogn();
 
 	public native void analyzeFeatureRecogn(String path);
 
 	static {
-		
-		/*System.load("/usr/include/lib/libopencv_core.so.2.4");
-		System.load("/usr/include/lib/libopencv_highgui.so.2.4");
-		System.load("/usr/include/lib/libopencv_imgproc.so.2.4");
-		System.load("/usr/include/lib/libopencv_nonfree.so.2.4");
-		System.load("/usr/include/lib/libopencv_features2d.so.2.4");
-		System.load("/usr/include/lib/libopencv_legacy.so.2.4");
-		System.load("/usr/include/lib/libopencv_nonfree.so.2.4");
-		System.load("/usr/include/lib/libopencv_calib3d.so.2.4");
-		System.load("/home/diego/workspaceNEW/MirageServerLib/Release/libMirageServerLib.so");
-		*/
+
+		System.load("/usr/local/lib/libopencv_core.so.2.4");
+		System.load("/usr/local/lib/libopencv_highgui.so.2.4");
+		System.load("/usr/local/lib/libopencv_imgproc.so.2.4");
+		System.load("/usr/local/lib/libopencv_nonfree.so.2.4");
+		System.load("/usr/local/lib/libopencv_features2d.so.2.4");
+		System.load("/usr/local/lib/libopencv_legacy.so.2.4");
+		System.load("/usr/local/lib/libopencv_nonfree.so.2.4");
+		System.load("/usr/local/lib/libopencv_calib3d.so.2.4");
+		System.load("/host/workspace/MirageServerCode/MirageServer/Debug/libMirageServer.so");
+
 	}
 
 	public static void main(String args[]) {
@@ -50,7 +49,8 @@ public class LoadInitialTargetsImages {
 		for (int i = 0; i < listOfFiles.length; i++) {
 			if (listOfFiles[i].isFile()
 					&& listOfFiles[i].getName().contains(".jpg")) {
-				System.out.println("ANALYZE " + listOfFiles[i].getAbsolutePath());
+				System.out.println("ANALYZE "
+						+ listOfFiles[i].getAbsolutePath());
 				loadInit.analyzeFeatureRecogn(listOfFiles[i].getAbsolutePath());
 				System.out.println("End");
 			}
