@@ -17,6 +17,7 @@
 #include <opencv2/features2d/features2d.hpp>
 #include <opencv2/nonfree/nonfree.hpp>
 #include <opencv2/calib3d/calib3d.hpp>
+
 #include <sys/timeb.h>
 #include "TargetImage.h"
 #include "newproto.pb.h"
@@ -346,19 +347,19 @@ JNIEXPORT void JNICALL Java_com_server_Matcher_load(JNIEnv *env, jclass obj, jst
 	//cerr << "Loading Done" << endl;
 	(*env).ReleaseStringUTFChars(path, file);
 
+	input.close();
+
+
 }
 
+
 JNIEXPORT jintArray JNICALL Java_com_server_Matcher_recognition(JNIEnv *env, jclass obj, jstring path, jint jbegin, jint jend) {
-
-
 
 //	jsize arrayCount = (*env).GetArrayLength(arrayIds);
 //
 //	jint bufIds[arrayCount];
 //
 //	(*env).GetIntArrayRegion(arrayIds, 0, arrayCount, bufIds);
-
-
 
 	const char *nativeString = (*env).GetStringUTFChars(path, 0);
 
@@ -489,7 +490,6 @@ JNIEXPORT jintArray JNICALL Java_com_server_Matcher_analyze(JNIEnv *env, jclass 
 	sde.compute(img, keys, des);
 
 	stringstream ss;
-
 
 	ss << nativeString << ".txt";
 	ofstream fout(ss.str().c_str());

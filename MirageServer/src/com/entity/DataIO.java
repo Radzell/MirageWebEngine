@@ -132,7 +132,7 @@ public class DataIO {
 		// String sql =
 		// "update into targetimage (_image, _bigImage,_width,_height, _keypoint, _descriptor) values (?, ?,?,?, ?, ?)";
 
-		String sql = "update targetimage set _image = ?,_bigImage=?,_width=?,_height=?, _keypoint=?, _descriptor=?, _rating=?, _rateCount = ?,_author = ? where id="
+		String sql = "update patterns set _image = ?,_bigImage=?,_width=?,_height=?, _keypoint=?, _descriptor=?, _rating=?, _rateCount = ?,_author = ? where id="
 				+ id;
 
 		try {

@@ -161,13 +161,12 @@ public class ServerThread extends Thread {
 		try {
 			br = new BufferedReader(new InputStreamReader(inFromClient));
 			String jsonJob = br.readLine();
-//			System.out.println(jsonJob);
+			System.out.println(jsonJob);
 			JSONObject json = new JSONObject(jsonJob);
 			jobType = json.getString("type");
 			filename = json.getString("filename");
 			idUser = json.getInt("user");
 			
-			System.out.println("TRABAJO DE TIPO "+jobType);
 			
 			if (jobType.equals(MATCH)) {
 				doMatchString();
@@ -205,6 +204,9 @@ public class ServerThread extends Thread {
 			// TODO the client must send a code to avoid the lose of connection
 			// when different clients have the same IP
 			
+			System.out.println("filename");
+			System.out.println(filename);
+			
 			if (Util.checkFileExist(filename)) {
 
 				Job job = new Job();
@@ -226,6 +228,9 @@ public class ServerThread extends Thread {
 				result = "{\"response\":{\"code\":2,\"message\":\"the file doesn't exist\"}}";
 			}
 
+			System.out.println("result");
+			System.out.println(result);
+			
 			bw.write(result);
 			bw.flush();
 

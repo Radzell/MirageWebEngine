@@ -26,7 +26,6 @@ public class CallBackTask implements Callable {
 //		ids = Matcher.match("/home/diego/Desktop/Mirage/uploads/"+job.getFilename(), begin, end);
 //		ids = Matcher.match("/home/diego/MirageFiles/uploads/"+job.getFilename(), begin, end);
 		
-		
 		ids = Matcher.match(job.getFilename(), begin, end);
 		
 		

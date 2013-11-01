@@ -109,6 +109,7 @@ public class Server {
 	}
 
 	public static void main(String args[]) {
+		
 		try {
 			if (args != null && args.length == 2) {
 				String filename = args[0];
@@ -117,13 +118,12 @@ public class Server {
 				DataIO.editTarget(filename + ".txt", id,1);
 				System.out.println("Updated successfully");
 			} else {
-				daemonize();
+//				daemonize();
 				new Server(Config.getPortNum()).listen();
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-
 	}
 
 	public void startProcess(Job job) {

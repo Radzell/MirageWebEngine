@@ -128,7 +128,7 @@ public class Client {
 			JSONObject newJob = new JSONObject();
 
 			newJob.put("type", "MATCH");
-			newJob.put("filename", "/home/diego/AptanaStudioWorkspace/MirageWebApp-master/public/system/uploads/uploads/000/000/090/original/iron-man-3-poster.jpg");
+			newJob.put("filename", "/home/diego/AptanaStudioWorkspace/MirageWebApp-master/public/system/uploads/uploads/000/000/021/original/test.jpg");
 			newJob.put("user", 0);
 
 			bw.write(newJob.toString() + "\n");

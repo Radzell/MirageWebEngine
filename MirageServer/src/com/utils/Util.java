@@ -351,8 +351,8 @@ public class Util {
 			ps.setString(4, imageResult);
 			ps.setInt(5, duration);
 			ps.setNString(6, ip);
-			int numRowsAffected = ps.executeUpdate();
-			System.out.println("Rows affected: " + numRowsAffected);
+			//int numRowsAffected = ps.executeUpdate();
+			//System.out.println("Rows affected: " + numRowsAffected);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

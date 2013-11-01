@@ -48,12 +48,14 @@ public class Matcher {
 			// Config.getUser() + ", " + Config.getPass());
 			Connection con = DriverManager.getConnection(Config.getDBUrl(), Config.getUser(), Config.getPass());
 
-			String sql = "select id, _keypoint, _descriptor, _width, _height from targetimage";
+			String sql = "select id, _keypoint, _descriptor, _width, _height from patterns";
 
 			if (idAuthor != 0) {
-				sql += " where _author =" + idAuthor;
+				sql += " where _author = " + idAuthor;
 			}
 
+			System.out.println(sql);
+			
 			PreparedStatement ps = con.prepareStatement(sql);
 			ResultSet rs = ps.executeQuery();
 			int count = 0;
@@ -61,11 +63,31 @@ public class Matcher {
 				if (count < 3) {
 					count++;
 				}
-				bs.add(new TargetImage(rs.getInt(1), null, null, null, 0, 0, null, (Vector<KeyPoint>) Util.objectFromByteArray(rs.getBytes(2)),
-						(Mat) Util.objectFromByteArray(rs.getBytes(3)), rs.getInt(4), rs.getInt(5)));
+				
+//				System.out.println("LONGITUD KEYPOINTS "+rs.getBytes(2).length);
+//				System.out.println("LONGITUD Mat "+rs.getBytes(3).length);
+				
+				
+				Vector<KeyPoint> test1 = (Vector<KeyPoint>) Util.objectFromByteArray(rs.getBytes(2));
+				Mat test2 = (Mat) Util.objectFromByteArray(rs.getBytes(3));
+				
+				System.out.println("ROWS ES IGUAL A "+test2.rows);
+				
+				if(test1==null){
+					System.out.println("EL TEST 1 es el nulo");
+				}
+				
+				if(test2==null){
+					System.out.println("EL TEST 2 es el nulo");
+				}
+				
+				
+				
+				bs.add(new TargetImage(rs.getInt(1), null, null, null, 0, 0, null, test1,
+						test2, rs.getInt(4), rs.getInt(5)));
 				IDs.add(rs.getInt(1));
 			}
-
+			System.out.println(IDs.size());
 			writeData(bs);
 			load(Config.getPathFiles() + "data");
 		} catch (Exception e) {
@@ -82,7 +104,7 @@ public class Matcher {
 			Class.forName(Config.getDriverString()).newInstance();
 			Connection con = DriverManager.getConnection(Config.getDBUrl(), Config.getUser(), Config.getPass());
 
-			PreparedStatement ps = con.prepareStatement("select id from targetimage where owner =" + idOwner);
+			PreparedStatement ps = con.prepareStatement("select id from patterns where _author =" + idOwner);
 			ResultSet rs = ps.executeQuery();
 			while (rs.next()) {
 				arrayIds.add(rs.getInt(1));
@@ -106,8 +128,14 @@ public class Matcher {
 			int dataSize = 1;
 			Iterator<TargetImage> it = b.iterator();
 			int size = b.size();
+			
+			System.out.println("TAMAÑO DE LOS COSOS QUE LLEGAN "+size);
+			
 			for (int i = 0; i < size; ++i) {
 				TargetImage temp = it.next();
+				System.out.println("temp.dess.rows "+temp.dess.rows);
+				System.out.println("temp.dess.cols "+temp.dess.cols);
+				System.out.println("temp.keys.size() "+temp.keys.size());
 				dataSize += temp.dess.rows * temp.dess.cols + 3 + temp.keys.size() * 7 + 1;
 			}
 
@@ -200,8 +228,11 @@ public class Matcher {
 	public native static void load(String path);
 
 	public native static void print();
-
+	
 	public native static void analyze(String path);
+	
+	
+	
 
 	/**
 	 * Compare an image to database images to find out the most similar ones.

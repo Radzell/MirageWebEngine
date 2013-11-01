@@ -3,6 +3,6 @@ jdbc:mysql://localhost/miragedb
 root
 
 3302
-/home/diego/Desktop/Mirage/
-/home/diego/Desktop/Mirage/uploads/
+/home/diego/Desktop/MirageFiles/Mirage/
+/home/diego/Desktop/MirageFiles/Mirage/uploads/
 /opt/lampp/htdocs/posters/

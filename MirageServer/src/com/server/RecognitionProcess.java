@@ -79,47 +79,52 @@ public class RecognitionProcess {
 	}
 
 	public void startProcess(Job job) {
-
+		System.out.println("FETCHHHHHHHH");
 		Util.numTargets = Matcher.fetch(job.getIdUser());
-
 
 		int nrOfProcessors = Runtime.getRuntime().availableProcessors();
 		if (Util.numTargets < nrOfProcessors) {
 			nrOfProcessors = Util.numTargets;
 		}
 
-		es = Executors.newFixedThreadPool(nrOfProcessors);
+		System.out.println(Util.numTargets);
 
-		resultIds = new Vector<Integer>();
+		if (Util.numTargets != 0) {
 
-		int targetsPerCore = (int) Util.numTargets / nrOfProcessors;
-		int extLastCore = 0;
+			es = Executors.newFixedThreadPool(nrOfProcessors);
 
-		if ((targetsPerCore * nrOfProcessors) != Util.numTargets) {
-			extLastCore = Util.numTargets - (targetsPerCore * nrOfProcessors);
-		}
+			resultIds = new Vector<Integer>();
 
-		NUM_OF_TASKS = nrOfProcessors;
-		
+			int targetsPerCore = (int) Util.numTargets / nrOfProcessors;
+			int extLastCore = 0;
 
-		int beginThisCore = 0;
-		int endThisCore = beginThisCore + targetsPerCore;
-
-		for (int i = 0; i < NUM_OF_TASKS; i++) {
-			if (i == (NUM_OF_TASKS - 1)&&endThisCore<Util.numTargets) {
-				endThisCore = Util.numTargets;
-				
+			if ((targetsPerCore * nrOfProcessors) != Util.numTargets) {
+				extLastCore = Util.numTargets - (targetsPerCore * nrOfProcessors);
 			}
-			if(endThisCore<beginThisCore){
-				endThisCore = beginThisCore;
-			}
-			
-			CallBackTask task = new CallBackTask(i, beginThisCore, endThisCore, job);
-			task.setCaller(this);
-			es.submit(task);
 
-			beginThisCore = endThisCore;
-			endThisCore = beginThisCore + targetsPerCore;
+			NUM_OF_TASKS = nrOfProcessors;
+
+			int beginThisCore = 0;
+			int endThisCore = beginThisCore + targetsPerCore;
+
+			for (int i = 0; i < NUM_OF_TASKS; i++) {
+				if (i == (NUM_OF_TASKS - 1) && endThisCore < Util.numTargets) {
+					endThisCore = Util.numTargets;
+
+				}
+				if (endThisCore < beginThisCore) {
+					endThisCore = beginThisCore;
+				}
+
+				CallBackTask task = new CallBackTask(i, beginThisCore, endThisCore, job);
+				task.setCaller(this);
+				es.submit(task);
+
+				beginThisCore = endThisCore;
+				endThisCore = beginThisCore + targetsPerCore;
+			}
+		} else {
+			callBack(null, job);
 		}
 	}
 
@@ -128,46 +133,54 @@ public class RecognitionProcess {
 		// es.shutdown();
 		// }
 
-		if (result.size() > 0) {
-			int extractFeaturesTime = result.get(0);
-			int matchTime = result.get(1);
-
-			Util.addExtractFeaturesTime(extractFeaturesTime);
-			Util.addMatchTime(matchTime);
-
-			for (int i = 2; i < result.size(); i++) {
-				resultIds.add(result.get(i));
-			}
-		}
-		cnt++;
-		if (cnt == NUM_OF_TASKS) {
+		if (result == null) {
 			ResponseHandler responseHandler = new ResponseHandler(job.getIp(), job.getHostname());
-			try {
-				Vector<TargetImage> b = getTargetImages(resultIds);
-				// Vector<TargetImage> b =
-				// getTargetImages(Matcher.match("/home/diego/MirageFiles/uploads/"
-				// + imageName));
-
-				String imageResult = "";
-				if (b.size() > 0) {
-					imageResult = b.get(0).name;
-				}
-
-				int duration = (int) (System.currentTimeMillis() - job.getTimeInit());
-
-				Util.insertNewRecord(job.getFilename(), Util.getExtractFeaturesTime(), Util.getMatchTime(), imageResult, duration, job.getIp());
-				Util.restartTime();
-
-				responseHandler.responseTargetImages(b);
-			} catch (Exception exc) {
-				Util.writeLog(logger, exc);
-				responseHandler.responseError("Cannot find book");
-				exc.printStackTrace();
-				reconnect();
-			}
-			es.shutdown();
+			responseHandler.responseError("Cannot find book");
 			cnt = 0;
+		} else {
 
+			if (result.size() > 0) {
+				int extractFeaturesTime = result.get(0);
+				int matchTime = result.get(1);
+
+				Util.addExtractFeaturesTime(extractFeaturesTime);
+				Util.addMatchTime(matchTime);
+
+				for (int i = 2; i < result.size(); i++) {
+					resultIds.add(result.get(i));
+				}
+			}
+			cnt++;
+
+			if (cnt == NUM_OF_TASKS) {
+				ResponseHandler responseHandler = new ResponseHandler(job.getIp(), job.getHostname());
+				try {
+					Vector<TargetImage> b = getTargetImages(resultIds);
+					// Vector<TargetImage> b =
+					// getTargetImages(Matcher.match("/home/diego/MirageFiles/uploads/"
+					// + imageName));
+
+					String imageResult = "";
+					if (b.size() > 0) {
+						imageResult = b.get(0).name;
+					}
+
+					int duration = (int) (System.currentTimeMillis() - job.getTimeInit());
+
+					Util.insertNewRecord(job.getFilename(), Util.getExtractFeaturesTime(), Util.getMatchTime(), imageResult, duration, job.getIp());
+					Util.restartTime();
+
+					responseHandler.responseTargetImages(b);
+				} catch (Exception exc) {
+					Util.writeLog(logger, exc);
+					responseHandler.responseError("Cannot find book");
+					exc.printStackTrace();
+					reconnect();
+				}
+				es.shutdown();
+				cnt = 0;
+
+			}
 		}
 	}
 
@@ -189,7 +202,7 @@ public class RecognitionProcess {
 		String dessst;
 
 		// create a sql statement for selecting books with the listed ids
-		String sql = "select id, _name, _author, _description, _rating, _rateCount, _image,_keypoint,_descriptor from targetimage where id in (";
+		String sql = "select id, _name, _author, _description, _rating, _rateCount, _image,_keypoint,_descriptor from patterns where id in (";
 
 		int idSize = ids.size();
 		Iterator<Integer> it = ids.iterator();
@@ -200,7 +213,7 @@ public class RecognitionProcess {
 			}
 		}
 		sql += ")";
-		// System.out.println("SQL " + sql);
+		System.out.println("SQL " + sql);
 		System.out.println("SQL " + sql);
 		if (ids.size() > 0) {
 			ResultSet rs = con.createStatement().executeQuery(sql);
@@ -208,16 +221,16 @@ public class RecognitionProcess {
 			while (rs.next()) {
 				// System.out.println("Add one book");
 				id = rs.getInt(1);
-				System.out.println("NOMBRE " + rs.getNString(2));
-				tit = rs.getNString(2);
-				au = rs.getNString(3);
-				in = rs.getNString(4);
-				ra = rs.getFloat(5);
-				rc = rs.getInt(6);
-				img = rs.getString(7);
-				kypbt = (byte[]) rs.getObject(8);
+				System.out.println("NOMBRE " + rs.getString("_name"));
+				tit = rs.getString("_name");
+				au = rs.getString("_author");
+				in = rs.getString("_description");
+				ra = rs.getFloat("_rating");
+				rc = rs.getInt("_rateCount");
+				img = rs.getString("_image");
+				kypbt = (byte[]) rs.getObject("_keypoint");
 				kyp = (Vector<KeyPoint>) Util.objectFromByteArray(kypbt);
-				dessbt = (byte[]) rs.getObject(9);
+				dessbt = (byte[]) rs.getObject("_descriptor");
 				dess = (Mat) Util.objectFromByteArray(dessbt);
 
 				int idx = ids.indexOf(id);
