@@ -112,6 +112,10 @@ void readKeyAndDesc(vector<KeyPoint> &trainKeys, Mat &trainDes, utils::TargetIma
 void readDB(utils::VectorTargetImages mdata, int &count) {
 	//int querySize;
 	//querySize = mdata.datasize();
+	if (targetImages.size() > 0) {
+		targetImages.clear();
+	}
+
 	for (int i = 0; i < mdata.targets_size(); ++i) {
 		utils::TargetImage target = mdata.targets(i);
 		vector<KeyPoint> qK;
@@ -124,6 +128,8 @@ void readDB(utils::VectorTargetImages mdata, int &count) {
 		qS.height = target.height();
 
 		readKeyAndDesc(qK, qD, target);
+
+//		cerr << "READ DB ID: " << ID<< endl;
 
 		targetimage.setId(ID);
 		targetimage.setSize(qS);
@@ -157,8 +163,8 @@ bool niceHomography(const Mat& H) {
 	return true;
 }
 
-inline bool refineMatchesWithHomography(float &confidence, const std::vector<cv::KeyPoint>& queryKeypoints,
-		const std::vector<cv::KeyPoint>& trainKeypoints, float reprojectionThreshold, std::vector<cv::DMatch>& matches, cv::Mat& homography) {
+inline bool refineMatchesWithHomography(float &confidence, const std::vector<cv::KeyPoint>& queryKeypoints, const std::vector<cv::KeyPoint>& trainKeypoints, float reprojectionThreshold,
+		std::vector<cv::DMatch>& matches, cv::Mat& homography) {
 	const unsigned int minNumberMatchesAllowed = 15;
 
 	if (matches.size() < minNumberMatchesAllowed)
@@ -184,6 +190,7 @@ inline bool refineMatchesWithHomography(float &confidence, const std::vector<cv:
 	confidence = (inliers.size() / (8 + 0.3 * matches.size())) * 100;
 
 	matches.swap(inliers);
+
 	return (matches.size() > minNumberMatchesAllowed) && niceHomography(homography) && (confidence > 55);
 }
 
@@ -202,6 +209,8 @@ inline void extractFeatures(const Mat& img, Mat& des, vector<KeyPoint>& keys) {
 	//cerr << "Train keys size start " << keys.size() << endl;
 	int s = 500;
 	// select only the appropriate number of keypoints
+
+
 	while (keys.size() > 1000) {
 		//cerr << "Train keys size " << keys.size() << endl;
 		keys.clear();
@@ -214,8 +223,7 @@ inline void extractFeatures(const Mat& img, Mat& des, vector<KeyPoint>& keys) {
 	sde.compute(img, keys, des);
 }
 
-inline void drawHomography(Mat& img, const std::vector<KeyPoint>& keypoints_object, const std::vector<KeyPoint>& keypoints_scene, const Size& dim,
-		const vector<DMatch>& good_matches) {
+inline void drawHomography(Mat& img, const std::vector<KeyPoint>& keypoints_object, const std::vector<KeyPoint>& keypoints_scene, const Size& dim, const vector<DMatch>& good_matches) {
 
 	Mat img_scene = img.clone();
 
@@ -252,7 +260,7 @@ inline void drawHomography(Mat& img, const std::vector<KeyPoint>& keypoints_obje
 
 	//-- Show detected matches
 
-	//showimage( "Good Matches & Object detection", img_scene );
+	showimage("Good Matches & Object detection", img_scene);
 
 }
 
@@ -272,17 +280,20 @@ inline void match(Mat& m_grayImg, const vector<KeyPoint> &trainKeys, const Mat &
 		vector<DMatch> refinedmatches;
 		bf.match(targetImages[i].getDescriptor(), trainDes, matches);
 
+
+
 		//Find homography transformation and detect good matches
 		cv::Mat m_roughHomography;
 		cv::Mat m_refinedHomography;
 		bool homographyFound = refineMatchesWithHomography(confidence, targetImages[i].getKeypoints(), trainKeys, 4, matches, m_roughHomography);
 		if (homographyFound) {
+
 			//Testing the homography
 			Mat m_warpedImg;
 			cv::warpPerspective(m_grayImg, m_warpedImg, m_roughHomography, targetImages[i].getSize(), cv::INTER_LINEAR);
 
 			//Shoe Warped Image
-			//showimage("Title",m_warpedImg);
+//		showimage("Title",m_warpedImg);
 
 			//Extract Warped Image Keys
 			Mat warpDes;
@@ -295,7 +306,7 @@ inline void match(Mat& m_grayImg, const vector<KeyPoint> &trainKeys, const Mat &
 
 			4, refinedmatches, m_refinedHomography);
 			if (homographyFound) {
-				//drawHomography(m_grayImg,targetImages[i].getKeypoints(),trainKeys,targetImages[i].getSize(),matches);
+//				drawHomography(m_grayImg,targetImages[i].getKeypoints(),trainKeys,targetImages[i].getSize(),matches);
 				pair<float, int> p(confidence, targetImages[i].getId());
 				result.push_back(p);
 			}
@@ -349,9 +360,7 @@ JNIEXPORT void JNICALL Java_com_server_Matcher_load(JNIEnv *env, jclass obj, jst
 
 	input.close();
 
-
 }
-
 
 JNIEXPORT jintArray JNICALL Java_com_server_Matcher_recognition(JNIEnv *env, jclass obj, jstring path, jint jbegin, jint jend) {
 
@@ -387,8 +396,10 @@ JNIEXPORT jintArray JNICALL Java_com_server_Matcher_recognition(JNIEnv *env, jcl
 
 	int startmatchTime = getMilliCount();
 	//Change to add the homography and the debug
-	//cerr << "Matching begin" << endl;
+
 	match(img, trainKeys, trainDes, result, begin, end);
+
+
 	int matchTime = getMilliSpan(startmatchTime);
 
 	int size = min(result.size(), MAX_ITEM);
@@ -479,7 +490,7 @@ JNIEXPORT jintArray JNICALL Java_com_server_Matcher_analyze(JNIEnv *env, jclass 
 // extract only the appropriate number of keypoints
 	while ((keys.size() > 5000) && (keys.size() == 0)) {
 		keys.clear();
-		level += 500;	// increase threshold to reduce number of detected keypoints
+		level += 500; // increase threshold to reduce number of detected keypoints
 		ORB sfd1(level);
 		sfd1.detect(img, keys);
 		level++;

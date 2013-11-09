@@ -12,6 +12,7 @@ import java.util.Scanner;
 import java.util.Vector;
 import java.util.logging.Logger;
 
+import com.entity.DataIO;
 import com.entity.KeyPoint;
 import com.entity.Mat;
 import com.entity.TargetImage;
@@ -43,11 +44,6 @@ public class Matcher {
 		IDs = new Vector<Integer>();
 		Vector<TargetImage> bs = new Vector<TargetImage>();
 		try {
-			Class.forName(Config.getDriverString()).newInstance();
-			// System.out.println("Driver Info:" + Config.getDBUrl() + ", " +
-			// Config.getUser() + ", " + Config.getPass());
-			Connection con = DriverManager.getConnection(Config.getDBUrl(), Config.getUser(), Config.getPass());
-
 			String sql = "select id, _keypoint, _descriptor, _width, _height from patterns";
 
 			if (idAuthor != 0) {
@@ -55,37 +51,20 @@ public class Matcher {
 			}
 
 			System.out.println(sql);
-			
-			PreparedStatement ps = con.prepareStatement(sql);
+			DataIO.initConnection();
+			PreparedStatement ps = DataIO.con.prepareStatement(sql);
 			ResultSet rs = ps.executeQuery();
 			int count = 0;
 			while (rs.next()) {
 				if (count < 3) {
 					count++;
 				}
-				
-//				System.out.println("LONGITUD KEYPOINTS "+rs.getBytes(2).length);
-//				System.out.println("LONGITUD Mat "+rs.getBytes(3).length);
-				
-				
-				Vector<KeyPoint> test1 = (Vector<KeyPoint>) Util.objectFromByteArray(rs.getBytes(2));
-				Mat test2 = (Mat) Util.objectFromByteArray(rs.getBytes(3));
-				
-				System.out.println("ROWS ES IGUAL A "+test2.rows);
-				
-				if(test1==null){
-					System.out.println("EL TEST 1 es el nulo");
+				if (rs.getBytes(2) != null) {
+					Vector<KeyPoint> test1 = (Vector<KeyPoint>) Util.objectFromByteArray(rs.getBytes(2));
+					Mat test2 = (Mat) Util.objectFromByteArray(rs.getBytes(3));
+					bs.add(new TargetImage(rs.getInt(1), null, null, null, 0, 0, null, test1, test2, rs.getInt(4), rs.getInt(5)));
+					IDs.add(rs.getInt(1));
 				}
-				
-				if(test2==null){
-					System.out.println("EL TEST 2 es el nulo");
-				}
-				
-				
-				
-				bs.add(new TargetImage(rs.getInt(1), null, null, null, 0, 0, null, test1,
-						test2, rs.getInt(4), rs.getInt(5)));
-				IDs.add(rs.getInt(1));
 			}
 			System.out.println(IDs.size());
 			writeData(bs);
@@ -128,14 +107,10 @@ public class Matcher {
 			int dataSize = 1;
 			Iterator<TargetImage> it = b.iterator();
 			int size = b.size();
-			
-			System.out.println("TAMAÑO DE LOS COSOS QUE LLEGAN "+size);
-			
+
 			for (int i = 0; i < size; ++i) {
 				TargetImage temp = it.next();
-				System.out.println("temp.dess.rows "+temp.dess.rows);
-				System.out.println("temp.dess.cols "+temp.dess.cols);
-				System.out.println("temp.keys.size() "+temp.keys.size());
+				// System.out.println("temp.width "+temp.width+"  temp.height "+temp.height);
 				dataSize += temp.dess.rows * temp.dess.cols + 3 + temp.keys.size() * 7 + 1;
 			}
 
@@ -228,11 +203,8 @@ public class Matcher {
 	public native static void load(String path);
 
 	public native static void print();
-	
+
 	public native static void analyze(String path);
-	
-	
-	
 
 	/**
 	 * Compare an image to database images to find out the most similar ones.

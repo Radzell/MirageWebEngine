@@ -115,7 +115,7 @@ public class Client {
 
 		try {
 			skt = new Socket("localhost", 3302);
-			// skt = new Socket("184.106.134.110", 3302);
+//			 skt = new Socket("184.106.134.110", 3302);
 			long start = System.currentTimeMillis();
 			BufferedReader br = new BufferedReader(new InputStreamReader(skt.getInputStream()));
 			BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(skt.getOutputStream()));
@@ -128,8 +128,13 @@ public class Client {
 			JSONObject newJob = new JSONObject();
 
 			newJob.put("type", "MATCH");
-			newJob.put("filename", "/home/diego/AptanaStudioWorkspace/MirageWebApp-master/public/system/uploads/uploads/000/000/021/original/test.jpg");
+			newJob.put("filename", "/home/diego/Desktop/foto.jpg");
 			newJob.put("user", 0);
+			
+			
+//			newJob.put("type", "LOADPATTERNS");
+//			newJob.put("filename", "/var/www/miragewebapp/current/public/uploads/pattern/r_image");
+//			newJob.put("user", 0);
 
 			bw.write(newJob.toString() + "\n");
 

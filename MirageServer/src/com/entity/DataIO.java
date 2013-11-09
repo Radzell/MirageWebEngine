@@ -12,6 +12,7 @@ import java.io.InputStreamReader;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Scanner;
@@ -39,7 +40,7 @@ import com.utils.Util;
  * 
  */
 public class DataIO {
-	private static Connection con;
+	public static Connection con;
 	public static boolean WINDOWS = true;
 	public static final String TARGETIMAGE = "targetimage";
 	public static final String DESCRIPTION = "_description";
@@ -54,10 +55,12 @@ public class DataIO {
 	static String splitChar = ".jpg";
 	private static ArrayList<String> tags;
 
-	static {
+	public static void initConnection() {
 		try {
-			Class.forName(Config.getDriverString()).newInstance();
-			con = DriverManager.getConnection(Config.getDBUrl(), Config.getUser(), Config.getPass());
+			// Class.forName(Config.getDriverString()).newInstance();
+			if (con == null) {
+				con = DriverManager.getConnection(Config.getDBUrl(), Config.getUser(), Config.getPass());
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -106,9 +109,12 @@ public class DataIO {
 	 * @param b
 	 */
 	public static void insertTargetImage(TargetImage b) {
-		String sql = "insert into targetimage (_name, _author, _description, _rating, _rateCount, _image, _bigImage,_width,_height, _keypoint, _descriptor) values (?, ?, ?, ?, ?, ?, ?,?,?, ?, ?)";
 
+		String sql = "insert into patterns (_name, _author, _description, _rating, _rateCount, _image, _bigImage,_width,_height, _keypoint, _descriptor) values (?, ?, ?, ?, ?, ?, ?,?,?, ?, ?)";
+
+		System.out.println("SQL INSERT " + sql);
 		try {
+			initConnection();
 			PreparedStatement ps = con.prepareStatement(sql);
 			ps.setNString(1, b.name);
 			ps.setNString(2, b.author);
@@ -128,29 +134,132 @@ public class DataIO {
 		}
 	}
 
-	public static void editTargetImage(TargetImage b, int id, int idUser) {
-		// String sql =
-		// "update into targetimage (_image, _bigImage,_width,_height, _keypoint, _descriptor) values (?, ?,?,?, ?, ?)";
+	
+	
+	/**
+	 * Extract info from the database for that pattern, delete the pattern and insert all the info again with the same ID
+	 * I have to do that because for some reason the update doesnt always work, I keep try to find the problem but for now we can this solution.
+	 * @param targetImage
+	 * @param id
+	 * @param idUser
+	 */
+	public static void editTargetImage(TargetImage targetImage, int id, int idUser) {
 
-		String sql = "update patterns set _image = ?,_bigImage=?,_width=?,_height=?, _keypoint=?, _descriptor=?, _rating=?, _rateCount = ?,_author = ? where id="
-				+ id;
+		int db_id = 0;
+		int user_id = 0;
+		String r_image = "";
 
 		try {
-			PreparedStatement ps = con.prepareStatement(sql);
-			ps.setString(1, b.image);
-			ps.setString(2, b.bigImg);
-			ps.setString(3, String.valueOf(b.width));
-			ps.setString(4, String.valueOf(b.height));
-			ps.setBytes(5, Util.objectToByteArray(b.keys));
-			ps.setBytes(6, Util.objectToByteArray(b.dess));
-			ps.setInt(7, 0);
-			ps.setInt(8, 0);
-			ps.setInt(9, idUser);
+			initConnection();
 
-			ps.execute();
+			System.out.println("Selection");
+			String sqlSelection = "select _name,_author,_description,_rating,_rateCount,r_image,db_id,user_id from patterns where id =" + id;
+
+			PreparedStatement psSelect = con.prepareStatement(sqlSelection);
+
+			ResultSet rs = psSelect.executeQuery();
+			while (rs.next()) {
+				targetImage.name = rs.getString(1);
+				targetImage.author = rs.getString(2);
+				targetImage.description = rs.getString(3);
+				targetImage.rating = rs.getInt(4);
+				targetImage.rateCount = rs.getInt(5);
+				r_image = rs.getString(6);
+				db_id = rs.getInt(7);
+				user_id = rs.getInt(8);
+			}
+
+			System.out.println("Deleting");
+
+			String deleteSQL = "delete from patterns where id = ?";
+			PreparedStatement psDelete = con.prepareStatement(deleteSQL);
+			psDelete.setInt(1, id);
+			psDelete.executeUpdate();
+
+			System.out.println("Inserting");
+
+			String sql = "insert into patterns (_name, _author, _description, _rating, _rateCount, _image, _bigImage,_width,_height, _keypoint, _descriptor,db_id,user_id,id,r_image) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+			PreparedStatement psInsert = con.prepareStatement(sql);
+			psInsert.setNString(1, targetImage.name);
+			psInsert.setNString(2, targetImage.author);
+			psInsert.setNString(3, targetImage.description);
+			psInsert.setString(4, String.valueOf(targetImage.rating));
+			psInsert.setString(5, String.valueOf(targetImage.rateCount));
+			psInsert.setString(6, targetImage.image);
+			psInsert.setString(7, targetImage.bigImg);
+			psInsert.setString(8, String.valueOf(targetImage.width));
+			psInsert.setString(9, String.valueOf(targetImage.height));
+			psInsert.setBytes(10, Util.objectToByteArray(targetImage.keys));
+			psInsert.setBytes(11, Util.objectToByteArray(targetImage.dess));
+			psInsert.setString(12, String.valueOf(db_id));
+			psInsert.setString(13, String.valueOf(user_id));
+			psInsert.setString(14, String.valueOf(id));
+			psInsert.setString(15, r_image);
+
+			psInsert.execute();
+
+			System.out.println("Create new pattern end");
+
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+
+		// insertTargetImage1(b);
+
+		// String sql =
+		// //
+		// "update into targetimage (_image, _bigImage,_width,_height, _keypoint, _descriptor) values (?, ?,?,?, ?, ?)";
+		//
+		// String sql =
+		// "update patterns set _image = ?,_bigImage=?,_width=?,_height=?, _keypoint=?, _descriptor=?, _rating=?, _rateCount = ?,_author = ? where id="
+		// + id;
+		// System.out.println("SQL UPDATE " + sql);
+		//
+		// // sql = "update patterns set _image = '" + b.image + "',_bigImage='"
+		// +
+		// // b.bigImg + "',_width='" + b.width + "',_height='" + b.height +
+		// // "' where id=" + id;
+		//
+		//
+		// // sql = "update patterns set _image = '" + b.image + "'where id=" +
+		// id;
+		//
+		// try {
+		// initConnection();
+		// PreparedStatement ps = con.prepareStatement(sql);
+		//
+		// System.out.println("b.keys "+b.keys.size());
+		// System.out.println("b.dess.cols "+b.dess.cols);
+		// System.out.println("b.dess.rows "+b.dess.rows);
+		//
+		// ps.setString(1, b.image);
+		// ps.setString(2, b.bigImg);
+		// ps.setString(3, String.valueOf(b.width));
+		// ps.setString(4, String.valueOf(b.height));
+		// ps.setBytes(5, Util.objectToByteArray(b.keys));
+		// ps.setBytes(6, Util.objectToByteArray(b.dess));
+		// ps.setInt(7, 0);
+		// ps.setInt(8, 0);
+		// ps.setInt(9, idUser);
+		// int result = ps.executeUpdate();
+		//
+		// System.out.println("Rows affected: " +
+		// result+" length "+ps.toString().length());
+		//
+		// String sql2 = "select _width from patterns where id =" + id;
+		//
+		// PreparedStatement ps1 = con.prepareStatement(sql2);
+		//
+		// System.out.println(sql2);
+		//
+		// ResultSet rs = ps1.executeQuery();
+		// while (rs.next()) {
+		// System.out.println("WIDTH " + rs.getInt(1));
+		// }
+		//
+		// } catch (SQLException e) {
+		// e.printStackTrace();
+		// }
 	}
 
 	/**
@@ -280,6 +389,33 @@ public class DataIO {
 	public static void editTarget(String filename, int id, int idUser) {
 		editTargetImage(readTargetImage(filename), id, idUser);
 	}
+	
+	
+	
+	public static void updatePatterns(String directoryName,String id) {
+	    File directory = new File(directoryName);
+	    File[] fList = directory.listFiles();
+	    for (File file : fList) {
+	        if (file.isFile()) {
+	        	System.out.println(file.getAbsolutePath());
+	        	if(file.getAbsolutePath().endsWith(".jpg")){
+	        		Util.deleteFile(file.getAbsolutePath() + ".txt");
+					Matcher.analyze(file.getAbsolutePath());
+					if (Util.checkFileExist(file.getAbsolutePath() + ".txt")) {
+						editTarget(file.getAbsolutePath()+".txt", Integer.parseInt(id), 0);
+						System.out.println("Updated successfully");
+					} else {
+						System.out.println("Fail the file doesnt exist");
+					}
+	        		
+	        		System.out.println("IMAGE with id "+id);
+	        	}
+	        } else if (file.isDirectory()) {
+	        	updatePatterns(file.getAbsolutePath(),file.getName());
+	        }
+	    }
+	}
+	
 
 	public static void main(String args[]) {
 		try {
@@ -287,7 +423,7 @@ public class DataIO {
 				String filename = args[0];
 				Matcher.analyze(filename);
 				int id = Integer.parseInt(args[1]);
-				DataIO.editTarget(filename + ".txt", id,1);
+				DataIO.editTarget(filename + ".txt", id, 1);
 				System.out.println("Updated successfully");
 
 			} else if (args.length > 2) {

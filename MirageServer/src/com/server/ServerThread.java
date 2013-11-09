@@ -46,9 +46,11 @@ public class ServerThread extends Thread {
 	public static final String SIMILAR = "SIMILAR";
 	public static final int MAX_SIMILAR_BOOK = 10;
 	private static final String IMAGE = "IMAGE";
+	private static final String LOADPATTERNS = "LOADPATTERNS";
 	private static final String HISTORY = "HISTORY";
 
-	private static Logger logger = Logger.getLogger(ServerThread.class.getName());
+	private static Logger logger = Logger.getLogger(ServerThread.class
+			.getName());
 
 	/**
 	 * Create new instance
@@ -71,8 +73,9 @@ public class ServerThread extends Thread {
 		clientIP = skt.getInetAddress().getHostAddress();
 		clientPort = skt.getPort();
 		clientHostname = skt.getInetAddress().getHostName();
-		String connectionInfo = "Connected from " + skt.getInetAddress() + " on port " + skt.getPort() + " to port " + skt.getLocalPort() + " of "
-				+ skt.getLocalAddress();
+		String connectionInfo = "Connected from " + skt.getInetAddress()
+				+ " on port " + skt.getPort() + " to port "
+				+ skt.getLocalPort() + " of " + skt.getLocalAddress();
 		timeUsed = System.currentTimeMillis();
 		Util.writeLog(logger, connectionInfo);
 		try {
@@ -166,15 +169,21 @@ public class ServerThread extends Thread {
 			jobType = json.getString("type");
 			filename = json.getString("filename");
 			idUser = json.getInt("user");
-			
-			
+
 			if (jobType.equals(MATCH)) {
 				doMatchString();
 			} else if (jobType.equals(IMAGE)) {
 				int targetID = json.getInt("targetid");
+				Util.deleteFile(filename + ".txt");
 				Matcher.analyze(filename);
-				DataIO.editTarget(filename + ".txt", targetID,idUser);
-				System.out.println("Updated successfully");
+				if (Util.checkFileExist(filename + ".txt")) {
+					DataIO.editTarget(filename + ".txt", targetID, idUser);
+					System.out.println("Updated successfully");
+				} else {
+					System.out.println("Fail the file doesnt exist");
+				}
+			}else if(jobType.equals(LOADPATTERNS)) {
+				DataIO.updatePatterns(filename, "0");
 			}
 
 		} catch (Exception e) {
@@ -198,15 +207,16 @@ public class ServerThread extends Thread {
 	 */
 	private void doMatchString() {
 		try {
-			BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(outToClient));
+			BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(
+					outToClient));
 			String result;
 
 			// TODO the client must send a code to avoid the lose of connection
 			// when different clients have the same IP
-			
+
 			System.out.println("filename");
 			System.out.println(filename);
-			
+
 			if (Util.checkFileExist(filename)) {
 
 				Job job = new Job();
@@ -230,13 +240,14 @@ public class ServerThread extends Thread {
 
 			System.out.println("result");
 			System.out.println(result);
-			
+
 			bw.write(result);
 			bw.flush();
 
 			bw.close();
 			skt.close();
-			System.out.println("Time request " + (System.currentTimeMillis() - timeUsed) / 1000 + "s");
+			System.out.println("Time request "
+					+ (System.currentTimeMillis() - timeUsed) / 1000 + "s");
 
 		} catch (IOException e) {
 			Util.writeLog(logger, e);
@@ -304,9 +315,13 @@ public class ServerThread extends Thread {
 	private String formatTargetImage(TargetImage b) {
 		String s = "";
 
-		s += XmlTag.targetimage_Start + XmlTag.id_Start + b.ID + XmlTag.id_End + XmlTag.name_Start + b.name + XmlTag.name_End + XmlTag.author_Start
-				+ b.author + XmlTag.author_End + XmlTag.rating_Start + b.rating + XmlTag.rating_End + XmlTag.description_Start + b.description
-				+ XmlTag.description_End + XmlTag.image_Start + b.image + XmlTag.image_End + XmlTag.targetimage_End;
+		s += XmlTag.targetimage_Start + XmlTag.id_Start + b.ID + XmlTag.id_End
+				+ XmlTag.name_Start + b.name + XmlTag.name_End
+				+ XmlTag.author_Start + b.author + XmlTag.author_End
+				+ XmlTag.rating_Start + b.rating + XmlTag.rating_End
+				+ XmlTag.description_Start + b.description
+				+ XmlTag.description_End + XmlTag.image_Start + b.image
+				+ XmlTag.image_End + XmlTag.targetimage_End;
 
 		return s;
 	}

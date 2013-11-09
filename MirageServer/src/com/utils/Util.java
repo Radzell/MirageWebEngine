@@ -54,10 +54,12 @@ public class Util {
 		return result;
 	}
 
-	public static final int mask[] = { 0x000000ff, 0x0000ff00, 0x00ff0000, 0xff000000 };
+	public static final int mask[] = { 0x000000ff, 0x0000ff00, 0x00ff0000,
+			0xff000000 };
 
 	public static String getNameLog() {
-		String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+		String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss")
+				.format(new Date());
 		return timeStamp;
 	}
 
@@ -214,7 +216,8 @@ public class Util {
 	 * @return
 	 */
 	public static float[] byteArrayToFloatArray(byte barr[]) {
-		FloatBuffer buffer = ByteBuffer.wrap(barr).order(ByteOrder.BIG_ENDIAN).asFloatBuffer();
+		FloatBuffer buffer = ByteBuffer.wrap(barr).order(ByteOrder.BIG_ENDIAN)
+				.asFloatBuffer();
 		float[] ints = new float[barr.length / 4];
 		buffer.get(ints);
 		return ints;
@@ -227,7 +230,8 @@ public class Util {
 	 * @return
 	 */
 	public static int[] byteArrayToIntArray(byte[] barr) {
-		IntBuffer buffer = ByteBuffer.wrap(barr).order(ByteOrder.BIG_ENDIAN).asIntBuffer();
+		IntBuffer buffer = ByteBuffer.wrap(barr).order(ByteOrder.BIG_ENDIAN)
+				.asIntBuffer();
 		int[] ints = new int[barr.length / 4];
 		buffer.get(ints);
 		return ints;
@@ -313,7 +317,8 @@ public class Util {
 		if (jobsToDo != null) {
 			for (int i = 0; i < jobsToDo.size(); i++) {
 				Job job = jobsToDo.get(i);
-				if (job.getIp().equals(ip) && job.getHostname().equals(hostname)) {
+				if (job.getIp().equals(ip)
+						&& job.getHostname().equals(hostname)) {
 					job.setResult(result);
 					job.setProcessed(true);
 					jobsToDo.set(i, job);
@@ -336,12 +341,14 @@ public class Util {
 		return null;
 	}
 
-	public static void insertNewRecord(String imageUploaded, int extractfeaturetime, int matchtime, String imageResult, int duration,
-			String ip) {
-		
+	public static void insertNewRecord(String imageUploaded,
+			int extractfeaturetime, int matchtime, String imageResult,
+			int duration, String ip) {
+
 		try {
 			Class.forName(Config.getDriverString()).newInstance();
-			Connection con = DriverManager.getConnection(Config.getDBUrl(), Config.getUser(), Config.getPass());
+			Connection con = DriverManager.getConnection(Config.getDBUrl(),
+					Config.getUser(), Config.getPass());
 
 			String sql = "insert into jobhistory (image,extractfeaturetime,matchtime,imageresult,duration,ip) values (?,?,?,?,?,?)";
 			PreparedStatement ps = con.prepareStatement(sql);
@@ -351,8 +358,8 @@ public class Util {
 			ps.setString(4, imageResult);
 			ps.setInt(5, duration);
 			ps.setNString(6, ip);
-			//int numRowsAffected = ps.executeUpdate();
-			//System.out.println("Rows affected: " + numRowsAffected);
+			// int numRowsAffected = ps.executeUpdate();
+			// System.out.println("Rows affected: " + numRowsAffected);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -361,6 +368,27 @@ public class Util {
 	public static boolean checkFileExist(String filename) {
 		File f = new File(filename);
 		return f.exists();
+	}
+
+	public static boolean deleteFile(String path) {
+		try {
+			if (checkFileExist(path)) {
+				File file = new File(path);
+				if (file.delete()) {
+					System.out.println(file.getName() + " is deleted!");
+					return true;
+				} else {
+					System.out.println("Delete operation is failed.");
+					return false;
+				}
+			} else {
+				return true;
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			return false;
+
+		}
 	}
 
 }

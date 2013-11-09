@@ -78,6 +78,7 @@ public class RecognitionProcess {
 		isRunning = false;
 	}
 
+	@SuppressWarnings("unchecked")
 	public void startProcess(Job job) {
 		System.out.println("FETCHHHHHHHH");
 		Util.numTargets = Matcher.fetch(job.getIdUser());
@@ -96,11 +97,6 @@ public class RecognitionProcess {
 			resultIds = new Vector<Integer>();
 
 			int targetsPerCore = (int) Util.numTargets / nrOfProcessors;
-			int extLastCore = 0;
-
-			if ((targetsPerCore * nrOfProcessors) != Util.numTargets) {
-				extLastCore = Util.numTargets - (targetsPerCore * nrOfProcessors);
-			}
 
 			NUM_OF_TASKS = nrOfProcessors;
 
@@ -184,6 +180,7 @@ public class RecognitionProcess {
 		}
 	}
 
+	@SuppressWarnings("unused")
 	private Vector<TargetImage> getTargetImages(Vector<Integer> ids) throws SQLException {
 		Vector<TargetImage> result = new Vector<TargetImage>();
 
@@ -221,7 +218,7 @@ public class RecognitionProcess {
 			while (rs.next()) {
 				// System.out.println("Add one book");
 				id = rs.getInt(1);
-				System.out.println("NOMBRE " + rs.getString("_name"));
+				System.out.println("Name " + rs.getString("_name"));
 				tit = rs.getString("_name");
 				au = rs.getString("_author");
 				in = rs.getString("_description");
