@@ -77,11 +77,6 @@ public class Server {
 			}
 		}
 
-		// if server is too busy, return a sorry message
-		// Create new error handler for this situations
-		// new
-		// ResponseHandler(skt.getInetAddress()).responseError("Server is too busy, please try again later");
-		// skt.close();
 	}
 
 	/**
@@ -194,12 +189,10 @@ public class Server {
 		sql += ")";
 
 		String name = "";
-		// System.out.println("SQL " + sql);
 		if (ids.size() > 0) {
 			ResultSet rs = con.createStatement().executeQuery(sql);
 			// get the result and reorder it
 			while (rs.next()) {
-				// System.out.println("Add one book");
 				System.out.println(rs.getNString(1));
 				name = rs.getNString(1);
 			}

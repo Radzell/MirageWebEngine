@@ -52,12 +52,11 @@ public class DataIO {
 	public static final int B_IMG_H = 200;
 	public static final int B_IMG_W = 150;
 
-	static String splitChar = ".jpg";
+	static String splitChar = "/";
 	private static ArrayList<String> tags;
 
 	public static void initConnection() {
 		try {
-			// Class.forName(Config.getDriverString()).newInstance();
 			if (con == null) {
 				con = DriverManager.getConnection(Config.getDBUrl(), Config.getUser(), Config.getPass());
 			}
@@ -87,7 +86,6 @@ public class DataIO {
 			name = sc.nextLine();
 			author = sc.nextLine();
 			description = sc.nextLine();
-			// System.out.println(tags);
 			rating = Float.valueOf(sc.nextLine());
 			rateCount = Integer.valueOf(sc.nextLine());
 			image = sc.nextLine();
@@ -204,62 +202,6 @@ public class DataIO {
 			e.printStackTrace();
 		}
 
-		// insertTargetImage1(b);
-
-		// String sql =
-		// //
-		// "update into targetimage (_image, _bigImage,_width,_height, _keypoint, _descriptor) values (?, ?,?,?, ?, ?)";
-		//
-		// String sql =
-		// "update patterns set _image = ?,_bigImage=?,_width=?,_height=?, _keypoint=?, _descriptor=?, _rating=?, _rateCount = ?,_author = ? where id="
-		// + id;
-		// System.out.println("SQL UPDATE " + sql);
-		//
-		// // sql = "update patterns set _image = '" + b.image + "',_bigImage='"
-		// +
-		// // b.bigImg + "',_width='" + b.width + "',_height='" + b.height +
-		// // "' where id=" + id;
-		//
-		//
-		// // sql = "update patterns set _image = '" + b.image + "'where id=" +
-		// id;
-		//
-		// try {
-		// initConnection();
-		// PreparedStatement ps = con.prepareStatement(sql);
-		//
-		// System.out.println("b.keys "+b.keys.size());
-		// System.out.println("b.dess.cols "+b.dess.cols);
-		// System.out.println("b.dess.rows "+b.dess.rows);
-		//
-		// ps.setString(1, b.image);
-		// ps.setString(2, b.bigImg);
-		// ps.setString(3, String.valueOf(b.width));
-		// ps.setString(4, String.valueOf(b.height));
-		// ps.setBytes(5, Util.objectToByteArray(b.keys));
-		// ps.setBytes(6, Util.objectToByteArray(b.dess));
-		// ps.setInt(7, 0);
-		// ps.setInt(8, 0);
-		// ps.setInt(9, idUser);
-		// int result = ps.executeUpdate();
-		//
-		// System.out.println("Rows affected: " +
-		// result+" length "+ps.toString().length());
-		//
-		// String sql2 = "select _width from patterns where id =" + id;
-		//
-		// PreparedStatement ps1 = con.prepareStatement(sql2);
-		//
-		// System.out.println(sql2);
-		//
-		// ResultSet rs = ps1.executeQuery();
-		// while (rs.next()) {
-		// System.out.println("WIDTH " + rs.getInt(1));
-		// }
-		//
-		// } catch (SQLException e) {
-		// e.printStackTrace();
-		// }
 	}
 
 	/**
@@ -271,7 +213,6 @@ public class DataIO {
 	public static String getName(String filename) {
 		String path = filename.substring(0, filename.lastIndexOf(splitChar));
 		path = path.substring(path.lastIndexOf('/') + 1);
-		// return s.substring(s.lastIndexOf(splitChar) + 1);
 		return path;
 	}
 
@@ -302,13 +243,9 @@ public class DataIO {
 
 		} catch (ParserConfigurationException pce) {
 			System.out.println(infoFile);
-			// pce.printStackTrace();
 		} catch (SAXException se) {
 			System.out.println(infoFile);
-			// se.printStackTrace();
 		} catch (IOException ioe) {
-			// System.out.println(infoFile);
-			// ioe.printStackTrace();
 		}
 	}
 
@@ -418,6 +355,8 @@ public class DataIO {
 	
 
 	public static void main(String args[]) {
+		System.out.println("Connected"+args[0]+" "+args[1]);
+
 		try {
 			if (args.length == 2) {
 				String filename = args[0];
@@ -436,28 +375,6 @@ public class DataIO {
 			System.out.println("Something went wrong");
 		}
 
-		// if (args.length > 0) {
-		// String pathTemp = args[0];
-		// System.out.println("Path: " + pathTemp);
-		// File folder = new File(pathTemp);
-		// File[] listOfFiles = folder.listFiles();
-		// for (int i = 0; i < listOfFiles.length; i++) {
-		// File file = listOfFiles[i];
-		// if (file.isFile() && file.getPath().contains(".txt")) {
-		// System.out.println(file.getPath());
-		// insertTargetImage(readTargetImage(file.getPath()));
-		// }
-		// }
-		// } else {
-		// System.out.println("ERROR CON LOS ARGUMENTOS");
-		// }
-
-		// Scanner input = new Scanner(System.in);
-		// while (input.hasNext()) {
-		// String s = input.nextLine();
-		// insertTargetImage(readTargetImage(s));
-		// // System.out.println("Done " + s);
-		// }
 	}
 
 }

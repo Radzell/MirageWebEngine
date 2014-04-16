@@ -57,7 +57,6 @@ public class Mat implements Serializable {
 
 			rows = dis.readInt();
 			cols = dis.readInt();
-			// type = dis.readInt();
 			type = CV_8U;
 			int size = rows * cols;
 			data = new int[size];
@@ -118,7 +117,6 @@ public class Mat implements Serializable {
 
 		rows = sc.nextInt();
 		cols = sc.nextInt();
-		// type = sc.nextInt();
 		type = CV_8U;
 		int size = rows * cols;
 		data = new int[size];

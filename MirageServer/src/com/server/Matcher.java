@@ -110,7 +110,6 @@ public class Matcher {
 
 			for (int i = 0; i < size; ++i) {
 				TargetImage temp = it.next();
-				// System.out.println("temp.width "+temp.width+"  temp.height "+temp.height);
 				dataSize += temp.dess.rows * temp.dess.cols + 3 + temp.keys.size() * 7 + 1;
 			}
 
@@ -230,7 +229,8 @@ public class Matcher {
 
 	static {
 		try {
-			System.loadLibrary("MirageServer");
+			System.load("/home/radzell/workspace/MirageWebApp/libMirageServer.so");
+			System.out.println("Library Directory: "+System.getProperty("java.library.path"));
 		} catch (Exception e) {
 			Util.writeLog(logger, e);
 			e.printStackTrace();

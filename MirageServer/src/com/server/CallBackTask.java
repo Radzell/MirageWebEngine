@@ -23,8 +23,6 @@ public class CallBackTask implements Callable {
 
 	public Object call() {
 		Vector<Integer> ids = null;
-//		ids = Matcher.match("/home/diego/Desktop/Mirage/uploads/"+job.getFilename(), begin, end);
-//		ids = Matcher.match("/home/diego/MirageFiles/uploads/"+job.getFilename(), begin, end);
 		
 		ids = Matcher.match(job.getFilename(), begin, end);
 		

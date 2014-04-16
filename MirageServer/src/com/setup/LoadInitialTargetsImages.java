@@ -24,7 +24,6 @@ public class LoadInitialTargetsImages {
 		try {
 			System.loadLibrary("MirageServer");
 		} catch (Exception e) {
-			//Util.writeLog(logger, e);
 			e.printStackTrace();
 		}
 
@@ -42,7 +41,6 @@ public class LoadInitialTargetsImages {
 
 		System.out.println("Start");
 
-		// p = pb.start(); // p.waitFor();
 
 		for (int i = 0; i < listOfFiles.length; i++) {
 			if (listOfFiles[i].isFile() && listOfFiles[i].getName().contains(".jpg")) {

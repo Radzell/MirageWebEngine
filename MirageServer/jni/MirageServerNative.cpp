@@ -504,17 +504,7 @@ JNIEXPORT jintArray JNICALL Java_com_server_Matcher_analyze(JNIEnv *env, jclass 
 
 	ss << nativeString << ".txt";
 	ofstream fout(ss.str().c_str());
-	/*
-	 fout << count << endl; // bookId
-	 fout << "Title " << s << endl; // title
-	 fout << "Author " << count << endl; // author
-	 fout << "Info " << count << endl; // info
-	 fout << "Tags " << count << endl; // tags
-	 fout << 0 << endl; // rating
-	 fout << 0 << endl; // rateCount
-	 fout << s << endl; // path to image
-	 fout << 15000 << endl; // price
-	 */
+
 	fout << nativeString << endl;
 	fout << img.cols << endl;
 	fout << img.rows << endl;

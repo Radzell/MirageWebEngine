@@ -68,9 +68,6 @@ public class Client {
 			TargetImage b = DataIO.createTargetImage(filename);
 			dos.writeBytes("MATCH ");
 			int size = b.keys.size();
-			// int dataSize =
-			// size*book.keys.firstElement().getSize()+book.dess.getSize()+1;
-			// dos.writeInt(dataSize);
 			dos.writeInt(size);
 			Iterator<KeyPoint> it = b.keys.iterator();
 			for (int i = 0; i < size; ++i) {
@@ -78,9 +75,7 @@ public class Client {
 			}
 			writeMat(dos, b.dess);
 			dos.writeBytes("\n");
-			// dos.close();
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -115,26 +110,17 @@ public class Client {
 
 		try {
 			skt = new Socket("localhost", 3302);
-//			 skt = new Socket("184.106.134.110", 3302);
 			long start = System.currentTimeMillis();
 			BufferedReader br = new BufferedReader(new InputStreamReader(skt.getInputStream()));
 			BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(skt.getOutputStream()));
 			System.out.println("Connection established");
-			// Server
-			// bw.write("MATCH IMG_20130529_200406.jpg\n");
-			// MY PC
-			// bw.write("MATCH IMG_20130529_193931.jpg\n");
 
 			JSONObject newJob = new JSONObject();
 
 			newJob.put("type", "MATCH");
 			newJob.put("filename", "/home/diego/Desktop/foto.jpg");
 			newJob.put("user", 0);
-			
-			
-//			newJob.put("type", "LOADPATTERNS");
-//			newJob.put("filename", "/var/www/miragewebapp/current/public/uploads/pattern/r_image");
-//			newJob.put("user", 0);
+
 
 			bw.write(newJob.toString() + "\n");
 
@@ -149,10 +135,8 @@ public class Client {
 			System.out.println("Response time: " + (System.currentTimeMillis() - start) + "ms");
 
 		} catch (UnknownHostException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}

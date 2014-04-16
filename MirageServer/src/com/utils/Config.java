@@ -13,7 +13,7 @@ public class Config {
 	
 	
 	//TODO fix the path
-	private static String config = "config.txt";
+	private static String config = "../../config.txt";
 	private static String driver = null;
 	private static String dbUrl = null;
 	private static String pass = null;
@@ -25,6 +25,8 @@ public class Config {
 
 	static {
 		try {
+			System.out.println("Working Directory = " +System.getProperty("user.dir"));
+			///config = (Util.checkFileExist("config")) ? "../../config.txt" : "config.txt";
 			@SuppressWarnings("resource")
 			BufferedReader br = new BufferedReader(new FileReader(config));
 			driver = br.readLine();
@@ -35,6 +37,7 @@ public class Config {
 			pathFiles = br.readLine();
 			pathUploads = br.readLine();
 			pathPosters = br.readLine();
+			
 		} catch (Exception exc) {
 			exc.printStackTrace();
 		}

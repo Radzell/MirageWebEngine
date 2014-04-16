@@ -27,8 +27,7 @@ public class ServerThread extends Thread {
 	BufferedInputStream inFromClient;
 	BufferedOutputStream outToClient;
 
-	// ObjectOutputStream out;
-	// ObjectInputStream in;
+
 	boolean hasJob;
 	String jobType = NO_JOB;
 	String filename;
@@ -259,40 +258,7 @@ public class ServerThread extends Thread {
 		}
 	}
 
-	/**
-	 * Get list of books from database with the specified ids
-	 * 
-	 * @param ids
-	 * @return
-	 * @throws SQLException
-	 */
 
-	// private void doImage() {
-	// Scanner input = new Scanner(inFromClient);
-	// String id = input.next();
-	// try {
-	// PreparedStatement ps =
-	// con.prepareStatement("select bigimage from targetimage where bookid = " +
-	// id);
-	// ResultSet rs = ps.executeQuery();
-	// while (rs.next()) {
-	// String img = rs.getString(1);
-	// BufferedWriter bw = new BufferedWriter(new
-	// OutputStreamWriter(outToClient));
-	// bw.write(img);
-	// bw.close();
-	// }
-	// } catch (SQLException exc) {
-	// Util.writeLog(logger, exc);
-	// reconnect();
-	// responseError("Cannot load image");
-	// exc.printStackTrace();
-	// } catch (Exception exc) {
-	// Util.writeLog(logger, exc);
-	// responseError("Cannot load image");
-	// exc.printStackTrace();
-	// }
-	// }
 
 	/**
 	 * Standardize a string to avoid sql error
@@ -326,25 +292,5 @@ public class ServerThread extends Thread {
 		return s;
 	}
 
-	// public void getJobHistory(){
-	// Class.forName(Config.getDriverString()).newInstance();
-	// System.out.println("Driver Info:" + Config.getDBUrl() + ", " +
-	// Config.getUser() + ", " + Config.getPass());
-	// Connection con = DriverManager.getConnection(Config.getDBUrl(),
-	// Config.getUser(), Config.getPass());
-	//
-	// PreparedStatement ps =
-	// con.prepareStatement("select * from jobhistory order by requesttime");
-	// ResultSet rs = ps.executeQuery();
-	// while (rs.next()) {
-	// arrayJobs.add(new Job(rs.getInt(1), rs.getString(2), rs.getString(3),
-	// rs.getInt(4), rs.getInt(5), rs.getString(6), rs.getInt(7), rs
-	// .getString(8)));
-	// }
-	// System.out.println("ACA");
-	// for (int i = 0; i < arrayJobs.size(); i++) {
-	// writeJob(arrayJobs.get(i));
-	// }
-	// }
 
 }

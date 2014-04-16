@@ -13,7 +13,6 @@ public class ClientSSH {
 		    try
 		    {
 		      System.out.println( "createSSHTunnel() - Creating ssh tunnel with " + sshCommand);
-		      //Runtime.getRuntime().exec(sshCommand);
 		      Process process=Runtime.getRuntime().exec(sshCommand);
 		    }catch(Exception e){
 		    	e.getStackTrace();

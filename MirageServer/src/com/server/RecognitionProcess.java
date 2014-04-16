@@ -125,9 +125,6 @@ public class RecognitionProcess {
 	}
 
 	public void callBack(Vector<Integer> result, Job job) {
-		// if (sizeResult > 0) {
-		// es.shutdown();
-		// }
 
 		if (result == null) {
 			ResponseHandler responseHandler = new ResponseHandler(job.getIp(), job.getHostname());
@@ -152,9 +149,7 @@ public class RecognitionProcess {
 				ResponseHandler responseHandler = new ResponseHandler(job.getIp(), job.getHostname());
 				try {
 					Vector<TargetImage> b = getTargetImages(resultIds);
-					// Vector<TargetImage> b =
-					// getTargetImages(Matcher.match("/home/diego/MirageFiles/uploads/"
-					// + imageName));
+
 
 					String imageResult = "";
 					if (b.size() > 0) {
